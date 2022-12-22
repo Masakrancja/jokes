@@ -1,8 +1,11 @@
 from flask import Flask, url_for, render_template, g
-
+from humorapi import *
 
 app = Flask(__name__)
 app.secret_key = 'dev'
+token = '182caef7b40a4bf397b4c6901518250e'
+
+api = Humor_api(token)
 
 @app.route('/')
 def index():
@@ -28,6 +31,10 @@ def login():
 @app.route('/logout')
 def logout():
     return 'Under construction - ' + url_for('logout')
+
+@app.route('/create_user')
+def create_user():
+    return render_template('create_user.html')
 
 
 
