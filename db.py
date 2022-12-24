@@ -1,5 +1,6 @@
 import sqlite3
-
+from flask import g
+database = 'jokes.sqlite'
 
 def get_db():
     if 'database' not in g:

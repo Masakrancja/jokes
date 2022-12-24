@@ -1,0 +1,19 @@
+      <nav class="navbar navbar-expand-lg bg-light">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#"><img src="/static/emoji-laughing.svg" alt="Bootstrap" width="32" height="32"></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+              <a class="nav-link active" aria-current="page" href="{{ url_for('index') }}">Home</a>
+              <a class="nav-link" href="{{ url_for('jokes') }}">Jokes</a>
+              <a class="nav-link" href="{{ url_for('favorites') }}">Favorites</a>
+
+              {% block link_login %}{% endblock %}
+              {% block link_logout %}{% endblock %}
+
+            </div>
+          </div>
+        </div>
+      </nav>

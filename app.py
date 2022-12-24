@@ -1,4 +1,5 @@
 from flask import Flask, url_for, render_template, g
+from db import get_db
 from humorapi import *
 
 app = Flask(__name__)
@@ -9,6 +10,13 @@ api = Humor_api(token)
 
 @app.route('/')
 def index():
+    print(g)
+    get_db()
+
+    for method in g:
+        print(method)
+
+
     return render_template('base.html')
 
 
