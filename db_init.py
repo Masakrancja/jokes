@@ -1,5 +1,5 @@
 import sqlite3
-database = 'jokes.sqlite'
+database = 'museum.sqlite'
 script_file = 'db.sql'
 
 def execute_script(cursor, script_file):

@@ -1,17 +1,43 @@
 from flask import Flask, url_for, render_template, g
-from db import get_db
-from humorapi import *
+from db import get_db, close_db
+from museum_of_art_api import *
+from utils import *
 
 app = Flask(__name__)
 app.secret_key = 'dev'
-token = '182caef7b40a4bf397b4c6901518250e'
+museum_api = Museum_api()
 
-api = Humor_api(token)
 
 @app.route('/')
 def index():
+    g.max_page = 10
     print(g)
-    get_db()
+    conn = get_db()
+    if conn:
+        utils = Utils(conn)
+
+        #Pobranie wszystkich departamentów
+        departments = museum_api.get_departments()
+        if departments.status_code == 200:
+            # Zapisanie ich do db jeżeli nie istnieją
+            utils.update_departments(departments.text)
+        else:
+            abort(departments.status_code)
+
+
+
+
+
+
+
+
+
+
+
+        close_db()
+    else:
+        abort(404)
+
 
     for method in g:
         print(method)
@@ -20,10 +46,11 @@ def index():
     return render_template('base.html')
 
 
-@app.route('/jokes/')
-@app.route('/jokes/<int:site>')
-def jokes(site=0):
-    return 'Under construction - ' + url_for('jokes', site=site)
+@app.route('/gallery/')
+@app.route('/gallery/<string:dep>/')
+@app.route('/gallery/<int:dep>/<int:site>')
+def jokes(dep='american-decorative-arts', site=0):
+    return 'Under construction - ' + url_for('jokes', site=site, dep=dep)
 
 
 @app.route('/favorites')
