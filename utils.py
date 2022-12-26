@@ -23,5 +23,37 @@ class Utils:
                                    self.create_uri_name(department['displayName'])))
                     self.conn.commit()                
         except sqlite3.Error as err:
-            print(err)
             abort(500, description="Error database")
+
+    def get_departament_id(self, name_uri):
+        try:
+            cursor = self.conn.cursor()
+            sql = "SELECT department_id FROM departments WHERE name_uri = ?"
+            sql_data = (name_uri, )
+            cursor.execute(sql, sql_data)
+            result = cursor.fetchone()
+            if result:
+                return result['department_id']
+            return 1
+        except sqlite3.Error as err:
+            abort(500, description="Error database")
+
+    def get_items(self, result):
+        return json.loads(result.text)['objectIDs']
+
+    def filter_items(self, items, user_id, dep):
+        try:
+            cursor = self.conn.cursor
+            sql = "SELECT objectID FROM arts WHERE ((user_id = ?) && (department = ?))"
+            sql_data = (user_id, dep)
+
+        except sqlite3.Error as err:
+            abort(500, description="Error database")
+
+
+
+
+
+
+
+

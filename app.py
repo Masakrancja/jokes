@@ -1,4 +1,4 @@
-from flask import Flask, url_for, render_template, g
+from flask import Flask, url_for, render_template, g, redirect
 from db import get_db, close_db
 from museum_of_art_api import *
 from utils import *
@@ -10,11 +10,20 @@ museum_api = Museum_api()
 
 @app.route('/')
 def index():
+    return redirect(url_for('gallery'))
+
+
+@app.route('/gallery/')
+@app.route('/gallery/<string:dep>/')
+@app.route('/gallery/<string:dep>/<int:site>')
+def gallery(dep='american-decorative-arts', site=0):
     g.max_page = 10
-    print(g)
     conn = get_db()
     if conn:
         utils = Utils(conn)
+
+        print('site',site)
+        print('dep',dep)
 
         #Pobranie wszystkich departamentów
         departments = museum_api.get_departments()
@@ -24,33 +33,24 @@ def index():
         else:
             abort(departments.status_code)
 
+        if 'items' not in g:
+            # Pobranie listy indeksów dzieł w wybranym departamencie
+            result = museum_api.get_objects(utils.get_departament_id(dep))
+            if result.status_code == 200:
+                items = utils.get_items(result)
 
-
-
-
-
+            #Odfiltrowanie już zapisanych dzieł. Usuwane są indeksy które user dodał do ulubionych
+            items = utils.filter_items(items, user_id)
 
 
 
 
 
         close_db()
-    else:
-        abort(404)
 
 
-    for method in g:
-        print(method)
 
-
-    return render_template('base.html')
-
-
-@app.route('/gallery/')
-@app.route('/gallery/<string:dep>/')
-@app.route('/gallery/<int:dep>/<int:site>')
-def jokes(dep='american-decorative-arts', site=0):
-    return 'Under construction - ' + url_for('jokes', site=site, dep=dep)
+    return 'Under construction - ' + url_for('gallery', site=site, dep=dep)
 
 
 @app.route('/favorites')
