@@ -41,14 +41,22 @@ class Utils:
     def get_items(self, result):
         return json.loads(result.text)['objectIDs']
 
-    def filter_items(self, items, user_id, dep):
+    '''
+     def filter_items(self, items, user_id, dep):
         try:
             cursor = self.conn.cursor
             sql = "SELECT objectID FROM arts WHERE ((user_id = ?) && (department = ?))"
             sql_data = (user_id, dep)
+            cursor.execute(sql, sql_data)
+            result = cursor.fetchall()
+            if result:
+                pass
+
 
         except sqlite3.Error as err:
             abort(500, description="Error database")
+   
+    '''
 
 
 

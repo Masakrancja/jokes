@@ -4,7 +4,7 @@ class Auth:
     def __init__(self, conn):
         self.conn = conn
 
-    def get_user_id:
+    def get_user_id(self):
         if 'user_id' in session:
             return session['user_id']
         return None
@@ -14,5 +14,7 @@ class Auth:
 
     def insert_user(self, login, hash_password):
         pass
+
+
 
 
