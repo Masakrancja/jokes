@@ -5,7 +5,7 @@ class DB():
         self.db_file = db_file
 
     def tables(self):
-        return ['art_department', 'arts', 'users', 'departments']
+        return ['user_arts', 'arts', 'arts_content',  'users', 'departments']
 
     def get_db(self):
         if 'db' not in g:
@@ -30,9 +30,6 @@ class DB():
 
     def check_tables(self):
         for table in self.tables():
-
-            print('table', table)
-
             if not self.check_if_table_exist(self.get_db(), table):
                 abort(500, description="Error database. Table: " + table + " missing. Run script db_init first")
 

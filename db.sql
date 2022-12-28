@@ -1,22 +1,41 @@
+DROP TABLE IF EXISTS "user_arts";
+DROP TABLE IF EXISTS "arts_content";
 DROP TABLE IF EXISTS "arts";
 DROP TABLE IF EXISTS "users";
 DROP TABLE IF EXISTS "departments";
-DROP TABLE IF EXISTS "art_department";
 
 PRAGMA foreign_keys = ON;
 
-CREATE TABLE "art_department" (
+CREATE TABLE "departments" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
-    "department_id"   INTEGER NOT NULL,
-    "art_id"   INTEGER NOT NULL,
-    FOREIGN KEY (department_id) REFERENCES departments(id),
-    FOREIGN KEY (art_id) REFERENCES arts(id)
+    "department_id" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "name_uri"  TEXT NOT NULL,
+    "updated_at"   TEXT NOT NULL
 );
 
 CREATE TABLE "arts" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
-    "user_id"   INTEGER NOT NULL,
-    "objectID"  INTEGER NOT NULL,
+    "art_id"  INTEGER NOT NULL,
+    "department_id"  INTEGER NOT NULL,
+    "updated_at"    TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX "index_art_id" ON arts(art_id);
+CREATE INDEX "index_department_id" ON arts(department_id);
+
+CREATE TABLE "users" (
+    "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
+    "user_id" INTEGER NOT NULL,
+    "login" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "updated_at"    TEXT NOT NULL
+);
+
+CREATE TABLE "arts_content" (
+    "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
+    "art_id" INTEGER NOT NULL,
     "isHighlight"   BOOLEAN,
     "accessionYear" INTEGER
     "primaryImage"  TEXT,
@@ -51,27 +70,18 @@ CREATE TABLE "arts" (
     "repository"    TEXT,
     "content"   TEXT,
     "rate"  INTEGER,
-    "department"  INTEGER,
-    "created_at"    TEXT,
-    "updated_at"    TEXT DEFAULT CURRENT_TIMESTAMP
+    "department_id"  INTEGER,
+    "updated_at"    TEXT NOT NULL,
+    FOREIGN KEY (art_id) REFERENCES arts(art_id),
+    FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
 
-CREATE TABLE "users" (
+CREATE TABLE "user_arts" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
-    "login" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "created_at"    TEXT,
-    "updated_at"   TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id) REFERENCES arts(user_id)
-);
-
-CREATE TABLE "departments" (
-    "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
-    "department_id" INTEGER NOT NULL,
-    "name" TEXT NOT NULL,
-    "name_uri"  TEXT NOT NULL,
-    "created_at"   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    "user_id"   INTEGER NOT NULL,
+    "art_id"    INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (art_id) REFERENCES arts(art_id)
 );
 
 

@@ -7,7 +7,6 @@ from auth import Auth
 app = Flask(__name__)
 app.secret_key = 'dev'
 db_file = 'museum.sqlite'
-museum_api = Museum_api()
 
 @app.route('/')
 def index():
@@ -15,86 +14,64 @@ def index():
 
 
 @app.route('/gallery/')
-@app.route('/gallery/<string:dep>/')
-@app.route('/gallery/<string:dep>/<int:site>')
-def gallery(dep='american-decorative-arts', site=0):
-    cookies = request.cookies
-    g.max_page = 10
+@app.route('/gallery/<string:dep_uri>/')
+@app.route('/gallery/<string:dep_uri>/<int:site>')
+def gallery(dep_uri='american-decorative-arts', site=0):
+    g.max_for_page = 10
+
+    # utworzenie instancji klasy DB
     db = DB(db_file)
+
+    #Prawdzenie czy są utworzone wszystkie tabele
     db.check_tables()
-    utils = Utils(db.get_db())
+
+    #utworzenie instancji klasy Utils
+    utils = Utils(db.get_db(), Museum_api())
 
     print('site',site)
-    print('dep',dep)
+    print('dep_uri',dep_uri)
 
-    #Pobranie wszystkich departamentów
-    departments = museum_api.get_departments()
-    if departments.status_code == 200:
-        # Zapisanie ich do db jeżeli nie istnieją
-        utils.update_departments(departments.text)
-    else:
-        abort(departments.status_code)
+    #Auktualizacja departamentów
+    if utils.check_if_update_departments():
+        utils.update_departments(utils.get_departments())
 
-    for item in g:
-        print(item)
+    #Aktualizacja wszystkich id produktów w wybranym departamencie
+    department_id = utils.get_department_id(dep_uri)
+    if utils.check_if_update_arts(department_id):
+        objects = utils.get_objects(department_id)
+        utils.update_arts(objects, department_id)
+
+    #Policzenie ile jest stron
+
+    #Pobranie id produktów dla wybranej strony i departamentu
+
+    #Aktualizacja contentu produktów dla wybranej strony i departamentu
+
+    #Wyświetlenie contentu
 
 
+
+
+
+    return 'Under construction - ' + url_for('gallery', site=site, dep_uri=dep_uri)
+
+
+'''
     if 'items' not in g:
         # Pobranie listy indeksów dzieł w wybranym departamencie
-        result = museum_api.get_objects(utils.get_departament_id(dep))
+        result = museum_api.get_objects(utils.get_department_id(dep_uri))
         if result.status_code == 200:
             items = utils.get_items(result)
             g['items'] = items
 
         #Odfiltrowanie już zapisanych dzieł. Usuwane są indeksy które user dodał do ulubionych
         #user_id = 1
-        #items = utils.filter_items(items, user_id, dep)
+        #items = utils.filter_items(items, user_id, dep_uri)
 
 
-
-        '''
-@app.route('/')
-def index():
-    cookies = request.cookies
-
-    cookie_ses = request.cookies.get('moje_ciastko_na_sesje')
-    cookie_30 = request.cookies.get('moje_ciastko_na_30_sekund')
-
-    return render_template('index.html',
-                           cookies=cookies,
-                           cookie_ses=cookie_ses,
-                           cookie_30=cookie_30)
+'''
 
 
-@app.route('/add_cookie_for_session')
-def add_cookie_for_session():
-    cookies = request.cookies
-    rendered_template = render_template('cookie_set.html', cookies=cookies)
-
-    response = make_response(rendered_template)
-    response.set_cookie(key='moje_ciastko_na_sesje',
-                        value='moja_wartosc_na_sesję',
-                        max_age=None)
-    return response
-
-
-@app.route('/add_cookie_for_30_secs')
-def add_cookie_for_30_secs():
-    cookies = request.cookies
-    rendered_template = render_template('cookie_set.html', cookies=cookies)
-
-    response = make_response(rendered_template)
-    response.set_cookie(key='moje_ciastko_na_30_sekund',
-                        value='moja_wartosc_na_30_sekund',
-                        max_age=30)
-    return response
-        
-        
-        
-        '''
-
-
-    return 'Under construction - ' + url_for('gallery', site=site, dep=dep)
 
 
 @app.route('/favorites')
