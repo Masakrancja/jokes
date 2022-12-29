@@ -1,5 +1,5 @@
 from flask import Flask, url_for, render_template, g, redirect, request
-from museum_of_art_api import Museum_api
+from museum_api import Museum_api
 from db import DB
 from utils import Utils
 from auth import Auth
@@ -15,8 +15,8 @@ def index():
 
 @app.route('/gallery/')
 @app.route('/gallery/<string:dep_uri>/')
-@app.route('/gallery/<string:dep_uri>/<int:site>')
-def gallery(dep_uri='american-decorative-arts', site=0):
+@app.route('/gallery/<string:dep_uri>/<int:page>')
+def gallery(dep_uri='american-decorative-arts', page=0):
     g.max_for_page = 10
 
     # utworzenie instancji klasy DB
@@ -27,9 +27,6 @@ def gallery(dep_uri='american-decorative-arts', site=0):
 
     #utworzenie instancji klasy Utils
     utils = Utils(db.get_db(), Museum_api())
-
-    print('site',site)
-    print('dep_uri',dep_uri)
 
     #Auktualizacja departamentów
     if utils.check_if_update_departments():
@@ -42,10 +39,15 @@ def gallery(dep_uri='american-decorative-arts', site=0):
         utils.update_arts(objects, department_id)
 
     #Policzenie ile jest stron
+    pages = utils.get_pages_count(department_id, g.max_for_page)
 
     #Pobranie id produktów dla wybranej strony i departamentu
+    objects = utils.get_objects_for_selected(page, department_id, g.max_for_page)
+
 
     #Aktualizacja contentu produktów dla wybranej strony i departamentu
+    utils.update_content(objects, department_id)
+
 
     #Wyświetlenie contentu
 
@@ -53,7 +55,7 @@ def gallery(dep_uri='american-decorative-arts', site=0):
 
 
 
-    return 'Under construction - ' + url_for('gallery', site=site, dep_uri=dep_uri)
+    return 'Under construction - ' + url_for('gallery', page=page, dep_uri=dep_uri)
 
 
 '''

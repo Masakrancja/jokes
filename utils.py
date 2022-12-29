@@ -6,7 +6,7 @@ class Utils:
         self.conn = conn
         self.museum_api = museum_api
 
-    def check_if_update_departments(self, seconds=1000):
+    def check_if_update_departments(self, seconds=3600):
         earlier = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
         cursor = self.conn.cursor()
         sql = "SELECT updated_at FROM departments LIMIT 1"
@@ -17,7 +17,7 @@ class Utils:
                 return False
         return True
 
-    def check_if_update_arts(self, department_id, seconds=300):
+    def check_if_update_arts(self, department_id, seconds=1800):
         earlier = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
         cursor = self.conn.cursor()
         sql = "SELECT updated_at FROM arts WHERE department_id = ? LIMIT 1"
@@ -32,16 +32,23 @@ class Utils:
     def get_departments(self):
         departments = self.museum_api.get_departments()
         if departments.status_code == 200:
-            return departments.text
+            return json.loads(departments.text)
         else:
             abort(departments.status_code)
 
     def get_objects(self, department_id):
         objects = self.museum_api.get_objects(department_id)
         if objects.status_code == 200:
-            return objects.text
+            return json.loads(objects.text)
         else:
             abort(objects.status_code)
+
+    def get_object(self, art_id):
+        object = self.museum_api.get_object(art_id)
+        if object.status_code == 200:
+            return json.loads(object.text)
+        else:
+            abort(object.status_code)
 
 
     def create_uri_name(self, name):
@@ -65,10 +72,9 @@ class Utils:
         now = datetime.datetime.now()
         format_string = "%Y-%m-%d %H:%M:%S"
         now_string = now.strftime(format_string)
-        departments = json.loads(departments)
         try:
+            cursor = self.conn.cursor()
             for department in departments['departments']:
-                cursor = self.conn.cursor()
                 cursor.execute("SELECT id FROM departments WHERE department_id = ?",
                        (department['departmentId'],))
                 result = cursor.fetchone()
@@ -82,40 +88,111 @@ class Utils:
                                    "VALUES (?, ?, ?, ?)",
                                    (department['departmentId'], department['displayName'],
                                     self.create_uri_name(department['displayName']), now_string))
-                self.conn.commit()
+            self.conn.commit()
         except sqlite3.Error as err:
             abort(500, description="Error database")
 
     def update_arts(self, objects, department_id):
-        print('department_id', department_id)
-        print('objects', objects)
-
-
-
-    def get_items(self, result):
-        return json.loads(result.text)['objectIDs']
-
-    '''
-     def filter_items(self, items, user_id, dep):
+        now = datetime.datetime.now()
+        format_string = "%Y-%m-%d %H:%M:%S"
+        now_string = now.strftime(format_string)
         try:
-            cursor = self.conn.cursor
-            sql = "SELECT objectID FROM arts WHERE ((user_id = ?) && (department = ?))"
-            sql_data = (user_id, dep)
-            cursor.execute(sql, sql_data)
-            result = cursor.fetchall()
-            if result:
-                pass
-
-
+            cursor = self.conn.cursor()
+            for object in objects['objectIDs']:
+                sql = "SELECT id from arts WHERE art_id = ? and department_id = ?"
+                sql_data = (object, department_id)
+                cursor.execute(sql, sql_data)
+                result = cursor.fetchone()
+                if result:
+                    sql = "UPDATE arts SET updated_at = ? WHERE id = ?"
+                    sql_data = (now_string, result['id'])
+                    cursor.execute(sql, sql_data)
+                else:
+                    sql = "INSERT INTO arts (art_id, department_id, updated_at) VALUES (?, ?, ?)"
+                    sql_data = (object, department_id, now_string)
+                    cursor.execute(sql, sql_data)
+            self.conn.commit()
         except sqlite3.Error as err:
             abort(500, description="Error database")
-   
-    '''
+
+    def get_pages_count(self, department_id, max_for_page):
+        try:
+            cursor = self.conn.cursor()
+            sql = "SELECT COUNT(id) AS c FROM arts WHERE department_id = ?"
+            sql_data = (department_id,)
+            cursor.execute(sql, sql_data)
+            result = cursor.fetchone()
+            if max_for_page == 0:
+               max_for_page = 10
+            pages =  result['c'] // max_for_page
+            if (result['c'] % max_for_page) > 0:
+                pages += 1
+            return pages
+        except sqlite3.Error as err:
+            abort(500, description="Error database")
+
+
+    def get_objects_for_selected(self, page, department_id, max_for_page):
+        try:
+            result = []
+            cursor = self.conn.cursor()
+            sql = "SELECT art_id FROM arts WHERE department_id = ? ORDER BY art_id DESC LIMIT ?, ?"
+            sql_data = (department_id, page * max_for_page, max_for_page)
+            cursor.execute(sql, sql_data)
+            rows = cursor.fetchall()
+            for row in rows:
+                result.append(row['art_id'])
+            return result
+        except sqlite3.Error as err:
+            abort(500, description="Error database")
+
+
+    def update_content(self, objects, department_id):
+        now = datetime.datetime.now()
+        format_string = "%Y-%m-%d %H:%M:%S"
+        now_string = now.strftime(format_string)
+        tables_to_update = ['isHighlight', 'accessionYear', 'primaryImage', 'primaryImageSmall', 'additionalImages',
+                            'objectName', 'title', 'culture', 'period', 'dynasty', 'reign', 'portfolio', 'artistRole',
+                            'artistDisplayName', 'artistDisplayBio', 'artistNationality', 'artistBeginDate',
+                            'artistEndDate', 'artistGender', 'artistWikidata_URL', 'artistULAN_URL', 'medium',
+                            'dimensions', 'creditLine', 'city', 'state', 'county', 'country', 'classification',
+                            'linkResource', 'metadataDate', 'repository', 'objectURL', 'department_id', 'updated_at']
+        tables_to_insert = ['art_id'] + tables_to_update
+
+        cursor = self.conn.cursor()
+        for object in objects:
+            r = self.get_object(object)
+            print(r)
+
+            data_to_update = [r['isHighlight'], r['accessionYear'], r['primaryImage'], r['primaryImageSmall'],
+                              r['additionalImages'], r['objectName'], r['title'], r['culture'], r['period'], r['dynasty'],
+                              r['reign'], r['portfolio'], r['artistRole'], r['artistDisplayName'], r['artistDisplayBio'],
+                              r['artistNationality'], r['artistBeginDate'], r['artistEndDate'], r['artistGender'],
+                              r['artistWikidata_URL'], r['artistULAN_URL'], r['medium'], r['dimensions'], r['creditLine'],
+                              r['city'], r['state'], r['county'], r['country'], r['classification'], r['linkResource'],
+                              r['metadataDate'], r['repository'], r['objectURL'], r['department_id'], now_string]
+
+            data_to_insert = ['art_id'] + data_to_update
 
 
 
+    "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
+    "art_id" INTEGER NOT NULL,
 
 
+            try:
+                sql = "SELECT id FROM arts_content WHERE art_id = ?"
+                sql_data = (object,)
+                cursor.execute(sql, sql_data)
+                result = cursor.fetchone()
 
 
+                if result:
+                    sql = "UPDATE arts_content SET " + ', '.join([x + ' = ?' for x in tables_to_update]) + \
+                          " WHERE art_id = ?"
+                else:
+                    sql = "INSERT INTO arts_content (" + ', '.join(tables_to_insert) + ") VALUES (" + ', '.join(
+                        len(tables_to_insert) * '?') + ")"
 
+            except sqlite3.Error as err:
+                abort(500, description="Error database")
