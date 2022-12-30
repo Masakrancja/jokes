@@ -37,7 +37,7 @@ CREATE TABLE "arts_content" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
     "art_id" INTEGER NOT NULL,
     "isHighlight"   BOOLEAN,
-    "accessionYear" INTEGER
+    "accessionYear" INTEGER,
     "primaryImage"  TEXT,
     "primaryImageSmall" TEXT,
     "additionalImages"  TEXT,

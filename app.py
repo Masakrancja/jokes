@@ -44,12 +44,20 @@ def gallery(dep_uri='american-decorative-arts', page=0):
     #Pobranie id produktów dla wybranej strony i departamentu
     objects = utils.get_objects_for_selected(page, department_id, g.max_for_page)
 
-
-    #Aktualizacja contentu produktów dla wybranej strony i departamentu
-    utils.update_content(objects, department_id)
+    #Aktualizacja contentu (o ile potrzeba) dla produktów dla wybranej strony i departamentu
+    for object in objects:
+        if utils.check_if_update_art_content(object, department_id):
+            utils.update_content(object, department_id)
 
 
     #Wyświetlenie contentu
+    contents = utils.get_contents(objects)
+
+    print(contents)
+
+
+
+    return render_template('favorites.html', count=len(contents), contents=contents)
 
 
 
