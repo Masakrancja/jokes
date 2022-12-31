@@ -1,19 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    count: {{ count }}
+    {% set obj = object %}
     {% for content in contents %}
-        <div>content : {{ content }}</div>
+        <div class="container-fluid p-2 m-2 product">
+            <div class="row">
+                <div class="col-md-1">
+                </div>
+                <div class="col-md-10">
+                    <h3 class="text-center">
+                        {{ content.title }}
+                    </h3>
+                </div>
+                <div class="col-md-1">
+                </div>
+            </div>
+            {% if content.primaryImageSmall %}
+                <div class="row">
+                    <div class="col-md-3">
+                    </div>
+                    <div class="col-md-6">
+                        <img alt="" src=" {{ content.primaryImageSmall }} " class="rounded" />
+                    </div>
+                    <div class="col-md-3">
+                    </div>
+                </div>
+            {% endif %}
+            {% for name in names %}
+                {% if content[name] %}
+                    <div class="row">
+                        <div class="col-md-3">
+                            {{ names[name] }}
+                        </div>
+                        <div class="col-md-9">
+                            {% if obj.is_link(content[name]) %}
+                                <a href="{{ content[name] }}" target="_blank">{{ content[name] }}</a>
+                            {% else %}
+                                {{ content[name] }}
+                            {% endif %}
+
+
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
     {% endfor %}
-
-
-
-
-
-
-
-
-</div>
 
 {% endblock %}

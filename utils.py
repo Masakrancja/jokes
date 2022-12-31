@@ -61,7 +61,7 @@ class Utils:
         name = re.sub(r'[^A-Za-z0-9]', '-', name).lower()
         return re.sub(r'-+', '-', name)
 
-    def get_department_id(self, name_uri):
+    def get_department_id_from_uri(self, name_uri):
         try:
             cursor = self.conn.cursor()
             sql = "SELECT department_id FROM departments WHERE name_uri = ?"
@@ -72,7 +72,20 @@ class Utils:
                 return result['department_id']
             return 1
         except sqlite3.Error as err:
-            abort(500, description="Error database - get_department_id")
+            abort(500, description="Error database - get_department_id_from_uri")
+
+    def get_department_name_from_id(self, department_id):
+        try:
+            cursor = self.conn.cursor()
+            sql = "SELECT name FROM departments WHERE department_id = ?"
+            sql_data = (department_id, )
+            cursor.execute(sql, sql_data)
+            result = cursor.fetchone()
+            if result:
+                return result['name']
+            return 1
+        except sqlite3.Error as err:
+            abort(500, description="Error database - get_department_name_from_id")
 
     def update_departments(self, departments):
         now = datetime.datetime.now()
@@ -171,26 +184,20 @@ class Utils:
         now = datetime.datetime.now()
         format_string = "%Y-%m-%d %H:%M:%S"
         now_string = now.strftime(format_string)
-        tables_to_update = ['isHighlight', 'accessionYear', 'primaryImage', 'primaryImageSmall', 'additionalImages',
-                            'objectName', 'title', 'culture', 'period', 'dynasty', 'reign', 'portfolio', 'artistRole',
-                            'artistDisplayName', 'artistDisplayBio', 'artistNationality', 'artistBeginDate',
-                            'artistEndDate', 'artistGender', 'artistWikidata_URL', 'artistULAN_URL', 'medium',
-                            'dimensions', 'creditLine', 'city', 'state', 'county', 'country', 'classification',
-                            'linkResource', 'metadataDate', 'repository', 'objectURL', 'department_id', 'updated_at']
+        tables_to_update = self.tables_to_update()
         tables_to_insert = ['art_id'] + tables_to_update
         cursor = self.conn.cursor()
         r = self.get_object(object)
-
-        print(r)
-
-
-        data_to_update = [r['isHighlight'], r['accessionYear'], r['primaryImage'], r['primaryImageSmall'],
-                          ';'.join(r['additionalImages']), r['objectName'], r['title'], r['culture'], r['period'], r['dynasty'],
-                          r['reign'], r['portfolio'], r['artistRole'], r['artistDisplayName'], r['artistDisplayBio'],
-                          r['artistNationality'], r['artistBeginDate'], r['artistEndDate'], r['artistGender'],
-                          r['artistWikidata_URL'], r['artistULAN_URL'], r['medium'], r['dimensions'], r['creditLine'],
-                          r['city'], r['state'], r['county'], r['country'], r['classification'], r['linkResource'],
-                          r['metadataDate'], r['repository'], r['objectURL'], department_id, now_string]
+        data_to_update = []
+        for col in tables_to_update:
+            if col == 'department_id':
+                data_to_update.append(department_id)
+            elif col == 'updated_at':
+                data_to_update.append(now_string)
+            elif col == 'additionalImages':
+                data_to_update.append(';'.join(r[col]))
+            else:
+                data_to_update.append(r[col])
 
         data_to_insert = [object] + data_to_update
         try:
@@ -216,19 +223,53 @@ class Utils:
 
     def get_contents(self, objects):
         result = []
+        tables_to_get = self.tables_to_content()
         try:
             cursor = self.conn.cursor()
             for object in objects:
-                sql = "SELECT * FROM arts_content WHERE art_id = ?"
+                sql = "SELECT " + ', '.join(tables_to_get) + " FROM arts_content WHERE art_id = ?"
                 sql_data = (object,)
                 cursor.execute(sql, sql_data)
                 row = cursor.fetchone()
                 if row:
-                    result.append(dict(row))
+                    row = dict(row)
+                    row['department'] = self.get_department_name_from_id(row['department_id'])
+                    result.append(row)
             return result
         except sqlite3.Error as err:
             abort(500, description="Error database - get_contents")
 
+    def tables_to_content(self):
+        return ['isHighlight', 'accessionYear', 'primaryImageSmall', 'objectName', 'title', 'culture',
+                'period', 'dynasty', 'reign', 'portfolio', 'artistRole', 'artistDisplayName',
+                'artistDisplayBio', 'artistNationality', 'artistBeginDate', 'artistEndDate',
+                'artistGender', 'artistWikidata_URL', 'artistULAN_URL', 'medium', 'dimensions',
+                'creditLine', 'city', 'state', 'county', 'country', 'classification',
+                'linkResource', 'repository', 'objectURL', 'department_id']
 
+    def tables_which_need_names(self):
+        tables = self.tables_to_content()
+        del tables[tables.index('isHighlight')]
+        del tables[tables.index('title')]
+        del tables[tables.index('department_id')]
+        del tables[tables.index('primaryImageSmall')]
+        return tables
 
+    def tables_to_update(self):
+        return ['isHighlight', 'accessionYear', 'primaryImage', 'primaryImageSmall', 'additionalImages',
+                'objectName', 'title', 'culture', 'period', 'dynasty', 'reign', 'portfolio', 'artistRole',
+                'artistDisplayName', 'artistDisplayBio', 'artistNationality', 'artistBeginDate',
+                'artistEndDate', 'artistGender', 'artistWikidata_URL', 'artistULAN_URL', 'medium',
+                'dimensions', 'creditLine', 'city', 'state', 'county', 'country', 'classification',
+                'linkResource', 'metadataDate', 'repository', 'objectURL', 'department_id', 'updated_at']
+
+    def get_human_name(self, name):
+        name = re.sub(r'([a-z])([A-Z])', r'\1 \2', name)
+        return name[0:1].upper() + name[1:] + ':'
+
+    def is_link(self, text):
+        result = re.match(r'^https?://', str(text))
+        if result and result.span():
+            return True
+        return False
 

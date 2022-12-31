@@ -1,0 +1,11 @@
+.product
+{
+    border: 1px solid black;
+    border-radius: 25px;
+}
+
+.product:hover
+{
+    cursor:pointer;
+    border: 3px solid green;
+}

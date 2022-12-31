@@ -16,7 +16,7 @@ def index():
 @app.route('/gallery/')
 @app.route('/gallery/<string:dep_uri>/')
 @app.route('/gallery/<string:dep_uri>/<int:page>')
-def gallery(dep_uri='american-decorative-arts', page=0):
+def gallery(dep_uri='greek-and-roman-art', page=0):
     g.max_for_page = 10
 
     # utworzenie instancji klasy DB
@@ -33,7 +33,7 @@ def gallery(dep_uri='american-decorative-arts', page=0):
         utils.update_departments(utils.get_departments())
 
     #Aktualizacja wszystkich id produktów w wybranym departamencie
-    department_id = utils.get_department_id(dep_uri)
+    department_id = utils.get_department_id_from_uri(dep_uri)
     if utils.check_if_update_arts(department_id):
         objects = utils.get_objects(department_id)
         utils.update_arts(objects, department_id)
@@ -52,36 +52,14 @@ def gallery(dep_uri='american-decorative-arts', page=0):
 
     #Wyświetlenie contentu
     contents = utils.get_contents(objects)
+    names = {name:utils.get_human_name(name) for name in utils.tables_which_need_names()}
 
     print(contents)
+    print(names)
 
 
 
-    return render_template('favorites.html', count=len(contents), contents=contents)
-
-
-
-
-
-    return 'Under construction - ' + url_for('gallery', page=page, dep_uri=dep_uri)
-
-
-'''
-    if 'items' not in g:
-        # Pobranie listy indeksów dzieł w wybranym departamencie
-        result = museum_api.get_objects(utils.get_department_id(dep_uri))
-        if result.status_code == 200:
-            items = utils.get_items(result)
-            g['items'] = items
-
-        #Odfiltrowanie już zapisanych dzieł. Usuwane są indeksy które user dodał do ulubionych
-        #user_id = 1
-        #items = utils.filter_items(items, user_id, dep_uri)
-
-
-'''
-
-
+    return render_template('favorites.html', object=utils, contents=contents, names=names)
 
 
 @app.route('/favorites')
