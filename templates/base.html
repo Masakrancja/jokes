@@ -9,6 +9,8 @@
   </head>
   <body>
     <div class="container">
+      {% set auth = auth %}
+      {% set utils = utils %}
       {% include 'menu.html' %}
       {% block content %}{% endblock %}
     </div>

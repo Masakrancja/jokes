@@ -5,7 +5,7 @@
     <div class="col-4"></div>
     <div class="col-4">
       <label for="login" class="form-label">Login</label>
-      <input type="text" class="form-control" id="login" name="login">
+      <input type="text" class="form-control" id="login" name="login" value="{{ login }}">
     </div>
     <div class="col-4"></div>
   </div>
@@ -20,7 +20,7 @@
   <div class="mb-3 row">
     <div class="col-4"></div>
     <div class="col-4">
-      <div>Click <a href="{{ url_for('create_user') }}">Create User</a> if you haven't account</div>
+      <div>Or click <a href="{{ url_for('create_user') }}">Create User</a> if you haven't account</div>
     </div>
     <div class="col-4"></div>
   </div>
@@ -31,6 +31,15 @@
     <div class="col-1"><button type="submit" class="btn btn-secondary" name="sub_cancel">Cancel</button></div>
     <div class="col-4"></div>
   </div>
+
+  {% if error %}
+  <div class="mb-3 row">
+    <div class="col-2"></div>
+    <div class="col-8 error_login text-center">{{ error }}</div>
+    <div class="col-2"></div>
+  </div>
+  {% endif %}
+
 </form>
 {% endblock %}
 

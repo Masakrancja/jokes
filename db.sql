@@ -26,7 +26,6 @@ CREATE INDEX "index_department_id" ON arts(department_id);
 
 CREATE TABLE "users" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
-    "user_id" INTEGER NOT NULL,
     "login" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -79,7 +78,7 @@ CREATE TABLE "user_arts" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
     "user_id"   INTEGER NOT NULL,
     "art_id"    INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (art_id) REFERENCES arts(art_id)
 );
 

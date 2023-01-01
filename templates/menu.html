@@ -6,11 +6,13 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-              <a class="nav-link active" aria-current="page" href="{{ url_for('index') }}">Home</a>
-              <a class="nav-link" href="{{ url_for('login') }}">Favorites</a>
-              {% block link_login %}{% endblock %}
-              {% block link_logout %}{% endblock %}
-
+              <a class="nav-link active" aria-current="page" href="{{ url_for('index') }}">Gallery</a>
+                {% if user_id %}
+                    <a class="nav-link" href="{{ url_for('favorites') }}">Favorites</a>
+                    <span>You are logged as: {{ auth.get_user_name(user_id) }}</span>
+                {% else %}
+                    <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                {% endif %}
             </div>
           </div>
         </div>

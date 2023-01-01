@@ -1,5 +1,54 @@
 {% extends "base.html" %}
 
 {% block content %}
-<p>Create_user</p>
+<form name="form_login" method="POST" action="{{ url_for('create_user') }}">
+  <div class="mb-3 row">
+    <div class="col-4"></div>
+    <div class="col-4">
+      <label for="login" class="form-label">Login</label>
+      <input type="text" class="form-control" id="login" name="login" value="{{ login }}">
+    </div>
+    <div class="col-4"></div>
+  </div>
+  <div class="mb-3 row">
+    <div class="col-4"></div>
+    <div class="col-4">
+      <label for="login" class="form-label">Your Name</label>
+      <input type="text" class="form-control" id="your_name" name="your_name" value="{{ name }}">
+    </div>
+    <div class="col-4"></div>
+  </div>
+  <div class="mb-3 row">
+    <div class="col-4"></div>
+    <div class="col-4">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" class="form-control" id="password" name="password">
+    </div>
+    <div class="col-4"></div>
+  </div>
+  <div class="mb-3 row">
+    <div class="col-4"></div>
+    <div class="col-4">
+      <label for="password" class="form-label">Reenter password</label>
+      <input type="password" class="form-control" id="password2" name="password2">
+    </div>
+    <div class="col-4"></div>
+  </div>
+  <div class="mb-3 row">
+    <div class="col-4"></div>
+    <div class="col-1"><button type="submit" class="btn btn-primary" name="sub_create">Create</button></div>
+    <div class="col-2"></div>
+    <div class="col-1"><button type="submit" class="btn btn-secondary" name="sub_cancel">Cancel</button></div>
+    <div class="col-4"></div>
+  </div>
+
+  {% if error %}
+  <div class="mb-3 row">
+    <div class="col-2"></div>
+    <div class="col-8 error_login text-center">{{ error }}</div>
+    <div class="col-2"></div>
+  </div>
+  {% endif %}
+
+</form>
 {% endblock %}

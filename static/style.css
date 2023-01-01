@@ -9,3 +9,9 @@
     cursor:pointer;
     border: 3px solid green;
 }
+
+.error_login
+{
+    color: red;
+    font-weight: bold;
+}
