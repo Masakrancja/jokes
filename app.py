@@ -7,16 +7,18 @@ from auth import Auth
 app = Flask(__name__)
 app.secret_key = 'dev'
 db_file = 'museum.sqlite'
+default_dep_uri = 'greek-and-roman-art'
+default_page = 0
 
 @app.route('/')
 def index():
-    return redirect(url_for('gallery'))
+    return redirect(url_for('gallery', dep_uri=default_dep_uri, page=default_page))
 
 
 @app.route('/gallery/')
 @app.route('/gallery/<string:dep_uri>/')
 @app.route('/gallery/<string:dep_uri>/<int:page>')
-def gallery(dep_uri='greek-and-roman-art', page=0):
+def gallery(dep_uri=default_dep_uri, page=default_page):
     g.max_for_page = 10
 
     # utworzenie instancji klasy DB
