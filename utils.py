@@ -70,7 +70,7 @@ class Utils:
             result = cursor.fetchone()
             if result:
                 return result['department_id']
-            return 1
+            return None
         except sqlite3.Error as err:
             abort(500, description="Error database - get_department_id_from_uri")
 
@@ -208,9 +208,7 @@ class Utils:
             if result:
                 sql = "UPDATE arts_content SET " + ', '.join([x + ' = ?' for x in tables_to_update]) + \
                       " WHERE art_id = ?"
-                print(sql)
                 data_to_update = tuple(data_to_update + [object])
-                print(data_to_update)
                 cursor.execute(sql, data_to_update)
             else:
                 sql = "INSERT INTO arts_content (" + ', '.join(tables_to_insert) + ") VALUES (" + ', '.join(
@@ -272,4 +270,42 @@ class Utils:
         if result and result.span():
             return True
         return False
+
+    def get_departments_from_db(self):
+        result = []
+        try:
+            cursor = self.conn.cursor()
+            sql = "SELECT department_id, name, name_uri FROM departments ORDER BY name ASC"
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+            for row in rows:
+                result.append(dict(row))
+            return result
+        except sqlite3.Error as err:
+            abort(500, description="Error database - get_departments_from_db")
+
+    def get_pagination(self, dep_uri, page, pages, max_pages):
+        pagination = {}
+        if page > 0:
+            pagination['prev'] = {'dep_uri': dep_uri, 'page': page - 1, 'disable': 0}
+        else:
+            pagination['prev'] = {'dep_uri': dep_uri, 'page': None, 'disable': 1}
+        if page < pages:
+            pagination['next'] = {'dep_uri': dep_uri, 'page': page + 1, 'disable':0}
+        else:
+            pagination['next'] = {'dep_uri': dep_uri, 'page': None, 'disable':1}
+        if pages < max_pages:
+            tab_range = range(1, pages + 1)
+        else:
+            if (pages - page) > max_pages:
+                tab_range = range(page, max_pages + page + 1)
+            else:
+                tab_range = range(page, pages + 1)
+        for item in tab_range:
+            pagination[item] = {'dep_uri': dep_uri, 'page':item, 'disable': 0}
+        return pagination
+
+
+
+
 

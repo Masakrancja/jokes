@@ -26,7 +26,6 @@ class Auth:
             abort(500, description="Error database - get_user_name")
 
     def logout(self):
-        print('session: ', session)
         if 'user_id' in session:
             session.pop('user_id')
 
@@ -102,6 +101,8 @@ class Auth:
             row = cursor.fetchone()
             if not row:
                 return 'Login and / or password are incorrect. Please try again'
+            else:
+                session['user_id'] = row['id']
             return ''
         except sqlite3.Error as err:
             abort(500, description="Error database - check_credentials")
