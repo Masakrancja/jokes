@@ -4,7 +4,6 @@ class Museum_api:
         return 'https://collectionapi.metmuseum.org/public/collection/v1/'
 
     def get_departments(self):
-        print(self.get_uri())
         return requests.get(self.get_uri() + 'departments')
 
     def get_objects(self, departmentIds=None):
@@ -19,16 +18,11 @@ class Museum_api:
 
 
 
-if __name__ == '__main__':
-    museum_api = Museum_api()
+#if __name__ == '__main__':
+    #museum_api = Museum_api()
     #r = museum_api.get_departments()
     #r = museum_api.get_objects(1)
-    r = museum_api.get_object(214)
-
-
-    print(r.url)
-    print(r.text)
-    print(r.status_code)
+   #r = museum_api.get_object(214)
 
 
 

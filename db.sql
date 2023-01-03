@@ -18,6 +18,7 @@ CREATE TABLE "arts" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
     "art_id"  INTEGER NOT NULL,
     "department_id"  INTEGER NOT NULL,
+    "hash"  TEXT NOT NULL,
     "updated_at"    TEXT NOT NULL
 );
 

@@ -1,5 +1,4 @@
-import datetime
-import sqlite3, json, re
+import datetime, hashlib, sqlite3, json, re
 from flask import abort
 class Utils:
     def __init__(self, conn, museum_api):
@@ -87,6 +86,19 @@ class Utils:
         except sqlite3.Error as err:
             abort(500, description="Error database - get_department_name_from_id")
 
+    def get_hash_art(self, art_id, department_id):
+        try:
+            cursor = self.conn.cursor()
+            sql = "SELECT hash FROM arts WHERE art_id = ? and department_id = ?"
+            sql_data = (art_id, department_id)
+            cursor.execute(sql, sql_data)
+            result = cursor.fetchone()
+            if result:
+                return result['hash']
+            return None
+        except sqlite3.Error as err:
+            abort(500, description="Error database - get_hash_art")
+
     def update_departments(self, departments):
         now = datetime.datetime.now()
         format_string = "%Y-%m-%d %H:%M:%S"
@@ -127,8 +139,9 @@ class Utils:
                     sql_data = (now_string, result['id'])
                     cursor.execute(sql, sql_data)
                 else:
-                    sql = "INSERT INTO arts (art_id, department_id, updated_at) VALUES (?, ?, ?)"
-                    sql_data = (object, department_id, now_string)
+                    sql = "INSERT INTO arts (art_id, department_id, hash, updated_at) VALUES (?, ?, ?, ?)"
+                    sql_data = (object, department_id, hashlib.sha256(str(object).encode() +
+                                str(department_id).encode()).hexdigest(), now_string)
                     cursor.execute(sql, sql_data)
             self.conn.commit()
         except sqlite3.Error as err:
@@ -198,7 +211,6 @@ class Utils:
                 data_to_update.append(';'.join(r[col]))
             else:
                 data_to_update.append(r[col])
-
         data_to_insert = [object] + data_to_update
         try:
             sql = "SELECT id FROM arts_content WHERE art_id = ?"
@@ -232,6 +244,7 @@ class Utils:
                 if row:
                     row = dict(row)
                     row['department'] = self.get_department_name_from_id(row['department_id'])
+                    row['hash'] = self.get_hash_art(object, row['department_id'])
                     result.append(row)
             return result
         except sqlite3.Error as err:
@@ -243,7 +256,7 @@ class Utils:
                 'artistDisplayBio', 'artistNationality', 'artistBeginDate', 'artistEndDate',
                 'artistGender', 'artistWikidata_URL', 'artistULAN_URL', 'medium', 'dimensions',
                 'creditLine', 'city', 'state', 'county', 'country', 'classification',
-                'linkResource', 'repository', 'objectURL', 'department_id']
+                'linkResource', 'repository', 'objectURL', 'department_id', 'art_id']
 
     def tables_which_need_names(self):
         tables = self.tables_to_content()
@@ -251,6 +264,7 @@ class Utils:
         del tables[tables.index('title')]
         del tables[tables.index('department_id')]
         del tables[tables.index('primaryImageSmall')]
+        del tables[tables.index('art_id')]
         return tables
 
     def tables_to_update(self):
@@ -304,8 +318,3 @@ class Utils:
         for item in tab_range:
             pagination[item] = {'dep_uri': dep_uri, 'page':item, 'disable': 0}
         return pagination
-
-
-
-
-

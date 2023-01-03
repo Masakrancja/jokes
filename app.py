@@ -1,5 +1,5 @@
 import re
-from flask import Flask, url_for, render_template, g, redirect, request
+from flask import Flask, url_for, render_template, g, redirect, request, session
 from museum_api import Museum_api
 from db import DB
 from utils import Utils
@@ -8,8 +8,8 @@ from auth import Auth
 app = Flask(__name__)
 app.secret_key = 'dev'
 db_file = 'museum.sqlite'
-#default_dep_uri = 'greek-and-roman-art'
-default_dep_uri = ''
+default_dep_uri = 'the-robert-lehman-collection'
+#default_dep_uri = ''
 default_page = 0
 
 @app.route('/')
@@ -83,14 +83,12 @@ def gallery(dep_uri=default_dep_uri, page=default_page):
         names = {name: utils.get_human_name(name) for name in utils.tables_which_need_names()}
         parameters['names'] = names
 
+        print(parameters)
+
         return render_template('gallery.html', **parameters)
     parameters['contents'] = ''
     parameters['names'] = ''
     return render_template('gallery.html', **parameters)
-
-
-
-
 
 @app.route('/favorites')
 def favorites():
@@ -100,7 +98,7 @@ def favorites():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
-        if 'user_id' in g:
+        if 'user_id' in g: #błąd !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             return redirect(url_for('gallery'))
         return render_template('login.html', error='', login='')
     else:
@@ -127,7 +125,7 @@ def logout():
     db.check_tables()
     auth = Auth(db.get_db())
     auth.logout()
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 @app.route('/create_user', methods=["GET", "POST"])
 def create_user():
@@ -156,6 +154,22 @@ def create_user():
                 return render_template('create_user.html', error=error, login=login, name=your_name)
             auth.insert_user(login, your_name, password)
         return redirect(url_for('index'))
+
+
+@app.route('/save-art-for-user', methods=['POST'])
+def save_art_for_user():
+    db = DB(db_file)
+    db.check_tables()
+    auth = Auth(db.get_db())
+    user_id = auth.get_user_id()
+
+    print('user_id')
+
+    if user_id:
+        pass
+    else:
+        return redirect(url_for('login'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
