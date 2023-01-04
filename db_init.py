@@ -1,6 +1,6 @@
 import sqlite3
-database = 'museum.sqlite'
-script_file = 'db.sql'
+database = 'db/museum.sqlite'
+script_file = 'db/db.sql'
 
 def execute_script(cursor, script_file):
     with open(script_file, encoding='utf-8') as f:

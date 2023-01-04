@@ -1,67 +1,91 @@
 import re
-from flask import Flask, url_for, render_template, g, redirect, request, session
-from museum_api import Museum_api
-from db import DB
-from utils import Utils
-from auth import Auth
+from flask import Flask, url_for, render_template, g, redirect, request
+from classes.museum_api import Museum_api
+from classes.db import DB
+from classes.auth import Auth
+from classes.dep import Departments
+from classes.arts import Arts
+from classes.cont import Cont
+
 
 app = Flask(__name__)
 app.secret_key = 'dev'
-db_file = 'museum.sqlite'
+db_file = 'db/museum.sqlite'
 default_dep_uri = 'the-robert-lehman-collection'
-#default_dep_uri = ''
 default_page = 0
+max_for_page = 10
+max_pages = 20
 
 @app.route('/')
-def index():
-    return redirect(url_for('gallery', dep_uri=default_dep_uri, page=default_page))
-
 @app.route('/gallery/')
 @app.route('/gallery/<string:dep_uri>/')
 @app.route('/gallery/<string:dep_uri>/<int:page>')
-def gallery(dep_uri=default_dep_uri, page=default_page):
-    max_for_page = 10
-    max_pages = 20
-
+def index(dep_uri=default_dep_uri, page=default_page):
     parameters = {}
 
     # utworzenie instancji klasy DB
     db = DB(db_file)
 
-    #Prawdzenie czy są utworzone wszystkie tabele
+    #Sprawdzenie czy są utworzone wszystkie tabele
     db.check_tables()
 
-    #utworzenie instancji klasy Utils
-    utils = Utils(db.get_db(), Museum_api())
-    parameters['utils'] = utils
-
-    # utworzenie instancji klasy Auth do sprawdzenia czy jest zalogowany user
+    # utworzenie instancji klasy Auth zawierającej metody związane z logowaniem i autoryzacją
     auth = Auth(db.get_db())
     parameters['auth'] = auth
+
+    #Pobranie id zalogowanego uzytkownika jeśli jest
     user_id = auth.get_user_id()
     parameters['user_id'] = user_id
 
-    #Auktualizacja departamentów
-    if utils.check_if_update_departments():
-        utils.update_departments(utils.get_departments())
+    #utworzenie instancji klasy Departments któwa zawiera metody działające na departamentach
+    dep = Departments(db.get_db(), Museum_api())
+    parameters['dep'] = dep
+
+    #Auktualizacja departamentów do bazy jeśli to konieczne
+    if dep.check_if_update_departments():
+        dep.update_departments(dep.get_departments())
 
     #pobranie dostępnych departamentów dla menu wyboru
-    departments = utils.get_departments_from_db()
+    departments = dep.get_departments_from_db()
     parameters['departments'] = departments
 
-    #Aktualizacja wszystkich id produktów w wybranym departamencie
-    department_id = utils.get_department_id_from_uri(dep_uri)
+    #Pobranie id departamentu z db na postawie jego nazwy uri
+    department_id = dep.get_department_id_from_uri(dep_uri)
+
+
+    for key, val in parameters.items():
+        print(key, ':', val)
 
     if department_id:
-        department_name = utils.get_department_name_from_id(department_id)
+        department_name = dep.get_department_name_from_id(department_id)
         parameters['department_name'] = department_name
 
-        if utils.check_if_update_arts(department_id):
-            objects = utils.get_objects(department_id)
-            utils.update_arts(objects, department_id)
+        #utworzenie instancji klasy Arts zawierającej metody obsługujące indeksy produktów
+        arts = Arts(db.get_db(), Museum_api())
+
+        # Aktualizacja wszystkich id produktów w wybranym departamencie
+        if arts.check_if_update_arts(department_id):
+            arts.update_arts(arts.get_arts(department_id), department_id)
+
+        # Pobranie id produktów dla wybranej strony i departamentu
+        arts_id = arts.get_arts_for_selected(page, department_id, max_for_page)
+
+
+        #utworzenie instancji klasy Arts zawierającej metody obsługujące indeksy produktów
+        cont = Cont(db.get_db(), Museum_api())
+
+        print(cont.get_cols_names_from_table('users'))
+
+        # Aktualizacja contentu do bazy (o ile potrzeba) dla produktów dla wybranej strony i departamentu
+        #for art_id in arts_id:
+        #    if cont.check_if_update_art_content(art_id, department_id):
+        #        cont.update_content(art_id, department_id)
 
 
 
+
+
+        '''
         #Policzenie ile jest stron
         pages = utils.get_pages_count(department_id, max_for_page)
 
@@ -69,25 +93,31 @@ def gallery(dep_uri=default_dep_uri, page=default_page):
         pagination = utils.get_pagination(dep_uri, page, pages, max_pages)
         parameters['pagination'] = pagination
 
-        # Pobranie id produktów dla wybranej strony i departamentu
-        objects = utils.get_objects_for_selected(page, department_id, max_for_page)
 
-        # Aktualizacja contentu (o ile potrzeba) dla produktów dla wybranej strony i departamentu
-        for object in objects:
-            if utils.check_if_update_art_content(object, department_id):
-                utils.update_content(object, department_id)
 
-        # Wyświetlenie contentu
+
+
+        # Utworzenie głównego contentu
         contents = utils.get_contents(objects)
+        contents_user = utils.get_contents_from_user(objects, user_id)
         parameters['contents'] = contents
+        parameters['contents_user'] = contents_user
+
+        #utworzenie słownika nazw parametrów
         names = {name: utils.get_human_name(name) for name in utils.tables_which_need_names()}
         parameters['names'] = names
 
-        print(parameters)
+
+
+        for key, val in parameters.items():
+            print(key,':',val)
 
         return render_template('gallery.html', **parameters)
+        '''
+
     parameters['contents'] = ''
     parameters['names'] = ''
+
     return render_template('gallery.html', **parameters)
 
 @app.route('/favorites')
@@ -97,16 +127,17 @@ def favorites():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    db = DB(db_file)
+    db.check_tables()
+    auth = Auth(db.get_db())
+    user_id = auth.get_user_id()
     if request.method == 'GET':
-        if 'user_id' in g: #błąd !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            return redirect(url_for('gallery'))
+        user_id = auth.get_user_id()
+        if user_id:
+            return redirect(url_for('index'))
         return render_template('login.html', error='', login='')
     else:
         if 'sub_login' in request.form:
-            db = DB(db_file)
-            db.check_tables()
-            auth = Auth(db.get_db())
-            user_id = auth.get_user_id()
             if user_id:
                 return redirect(url_for('index'))
             else:
@@ -122,7 +153,6 @@ def login():
 @app.route('/logout')
 def logout():
     db = DB(db_file)
-    db.check_tables()
     auth = Auth(db.get_db())
     auth.logout()
     return redirect(url_for('login'))
@@ -163,12 +193,12 @@ def save_art_for_user():
     auth = Auth(db.get_db())
     user_id = auth.get_user_id()
 
-    print('user_id')
+    print(user_id)
 
     if user_id:
-        pass
+        return str(user_id)
     else:
-        return redirect(url_for('login'))
+        return ''
 
 
 if __name__ == '__main__':

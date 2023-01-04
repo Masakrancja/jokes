@@ -3,7 +3,7 @@ import sqlite3
 from flask import abort
 
 from flask import session
-class Auth:
+class Auth():
     def __init__(self, conn):
         self.conn = conn
 

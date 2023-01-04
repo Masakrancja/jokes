@@ -1,5 +1,5 @@
 import requests
-class Museum_api:
+class Museum_api():
     def get_uri(self):
         return 'https://collectionapi.metmuseum.org/public/collection/v1/'
 
