@@ -5,38 +5,6 @@ class Utils():
         self.conn = conn
         self.museum_api = museum_api
 
-
-    #Content
-
-
-
-
-
-
-    def get_contents(self, objects):
-        result = []
-        tables_to_get = self.tables_to_content()
-        try:
-            cursor = self.conn.cursor()
-            for object in objects:
-                sql = "SELECT " + ', '.join(tables_to_get) + " FROM arts_content WHERE art_id = ?"
-                sql_data = (object,)
-                cursor.execute(sql, sql_data)
-                row = cursor.fetchone()
-                if row:
-                    row = dict(row)
-
-                    #Dodanie nazwy depatramentu
-                    row['department'] = self.get_department_name_from_id(row['department_id'])
-
-                    #dodanie hasha
-                    row['hash'] = self.get_hash_art(object, row['department_id'])
-
-                    result.append(row)
-            return result
-        except sqlite3.Error as err:
-            abort(500, description="Error database - get_contents")
-
     def tables_to_content(self):
         return ['isHighlight', 'accessionYear', 'primaryImageSmall', 'objectName', 'title', 'culture',
                 'period', 'dynasty', 'reign', 'portfolio', 'artistRole', 'artistDisplayName',
@@ -44,15 +12,6 @@ class Utils():
                 'artistGender', 'artistWikidata_URL', 'artistULAN_URL', 'medium', 'dimensions',
                 'creditLine', 'city', 'state', 'county', 'country', 'classification',
                 'linkResource', 'repository', 'objectURL', 'department_id', 'art_id']
-
-    def tables_which_need_names(self):
-        tables = self.tables_to_content()
-        del tables[tables.index('isHighlight')]
-        del tables[tables.index('title')]
-        del tables[tables.index('department_id')]
-        del tables[tables.index('primaryImageSmall')]
-        del tables[tables.index('art_id')]
-        return tables
 
     def tables_to_update(self):
         return ['isHighlight', 'accessionYear', 'primaryImage', 'primaryImageSmall', 'additionalImages',
@@ -62,9 +21,11 @@ class Utils():
                 'dimensions', 'creditLine', 'city', 'state', 'county', 'country', 'classification',
                 'linkResource', 'metadataDate', 'repository', 'objectURL', 'department_id', 'updated_at']
 
-    def get_human_name(self, name):
-        name = re.sub(r'([a-z])([A-Z])', r'\1 \2', name)
-        return name[0:1].upper() + name[1:] + ':'
+
+
+
+
+
 
     def is_link(self, text):
         result = re.match(r'^https?://', str(text))

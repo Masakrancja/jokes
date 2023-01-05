@@ -1,5 +1,5 @@
 import re
-from flask import Flask, url_for, render_template, g, redirect, request
+from flask import Flask, url_for, render_template, redirect, request
 from classes.museum_api import Museum_api
 from classes.db import DB
 from classes.auth import Auth
@@ -14,7 +14,7 @@ db_file = 'db/museum.sqlite'
 default_dep_uri = 'the-robert-lehman-collection'
 default_page = 0
 max_for_page = 10
-max_pages = 20
+max_pages_in_pagination = 20
 
 @app.route('/')
 @app.route('/gallery/')
@@ -52,10 +52,6 @@ def index(dep_uri=default_dep_uri, page=default_page):
     #Pobranie id departamentu z db na postawie jego nazwy uri
     department_id = dep.get_department_id_from_uri(dep_uri)
 
-
-    for key, val in parameters.items():
-        print(key, ':', val)
-
     if department_id:
         department_name = dep.get_department_name_from_id(department_id)
         parameters['department_name'] = department_name
@@ -64,25 +60,37 @@ def index(dep_uri=default_dep_uri, page=default_page):
         arts = Arts(db.get_db(), Museum_api())
 
         # Aktualizacja wszystkich id produktów w wybranym departamencie
-        if arts.check_if_update_arts(department_id):
+        if arts.check_if_update_arts_is_needed(department_id):
             arts.update_arts(arts.get_arts(department_id), department_id)
 
         # Pobranie id produktów dla wybranej strony i departamentu
-        arts_id = arts.get_arts_for_selected(page, department_id, max_for_page)
-
+        arts_id = arts.get_arts_for_selected_page(page, department_id, max_for_page)
 
         #utworzenie instancji klasy Arts zawierającej metody obsługujące indeksy produktów
         cont = Cont(db.get_db(), Museum_api())
 
-        print(cont.get_cols_names_from_table('users'))
+        print(arts_id)
 
-        # Aktualizacja contentu do bazy (o ile potrzeba) dla produktów dla wybranej strony i departamentu
-        #for art_id in arts_id:
-        #    if cont.check_if_update_art_content(art_id, department_id):
-        #        cont.update_content(art_id, department_id)
+        #Aktualizacja contentu do bazy (o ile potrzeba) dla produktów dla wybranej strony i departamentu
+        for art_id in arts_id:
+            if cont.check_if_update_art_content_is_needed(art_id, department_id):
+                cont.update_content(art_id, department_id)
 
+        #Przygotowanie contentu do wyświetlenia
+        contents = cont.get_contents(arts_id)
 
+        for content in contents:
+            print(content)
 
+        #utworzenie słownika nazw parametrów
+        names = {name: cont.get_human_name(name) for name in cont.get_cols_to_need_names()}
+        parameters['names'] = names
+
+        for key, val in parameters.items():
+            print(key, ':', val)
+
+        #Dodatnie contentu zalogowanego użytkownika
+        #contents = cont.get_contents_from_user(contents, user_id)
 
 
         '''
@@ -98,14 +106,12 @@ def index(dep_uri=default_dep_uri, page=default_page):
 
 
         # Utworzenie głównego contentu
-        contents = utils.get_contents(objects)
-        contents_user = utils.get_contents_from_user(objects, user_id)
+
+        
         parameters['contents'] = contents
         parameters['contents_user'] = contents_user
 
-        #utworzenie słownika nazw parametrów
-        names = {name: utils.get_human_name(name) for name in utils.tables_which_need_names()}
-        parameters['names'] = names
+
 
 
 
@@ -119,6 +125,7 @@ def index(dep_uri=default_dep_uri, page=default_page):
     parameters['names'] = ''
 
     return render_template('gallery.html', **parameters)
+
 
 @app.route('/favorites')
 def favorites():
@@ -150,12 +157,14 @@ def login():
                     return redirect(url_for('index'))
         return redirect(url_for('index'))
 
+
 @app.route('/logout')
 def logout():
     db = DB(db_file)
     auth = Auth(db.get_db())
     auth.logout()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
+
 
 @app.route('/create_user', methods=["GET", "POST"])
 def create_user():
@@ -184,21 +193,6 @@ def create_user():
                 return render_template('create_user.html', error=error, login=login, name=your_name)
             auth.insert_user(login, your_name, password)
         return redirect(url_for('index'))
-
-
-@app.route('/save-art-for-user', methods=['POST'])
-def save_art_for_user():
-    db = DB(db_file)
-    db.check_tables()
-    auth = Auth(db.get_db())
-    user_id = auth.get_user_id()
-
-    print(user_id)
-
-    if user_id:
-        return str(user_id)
-    else:
-        return ''
 
 
 if __name__ == '__main__':

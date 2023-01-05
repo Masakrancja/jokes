@@ -76,6 +76,7 @@ class Departments():
         except sqlite3.Error as err:
             abort(500, description="Error database - get_department_id_from_uri")
 
+
     def get_department_name_from_id(self, department_id):
         try:
             cursor = self.conn.cursor()
@@ -87,8 +88,7 @@ class Departments():
                 return result['name']
             return 1
         except sqlite3.Error as err:
-            abort(500, description="Error database - get_department_name_from_id")
-
+            abort(500, description=f"Error database - get_department_name_from_id {err}")
 
     def create_uri_name(self, name):
         name = re.sub(r'[^A-Za-z0-9]', '-', name).lower()

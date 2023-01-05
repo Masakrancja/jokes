@@ -1,11 +1,34 @@
-DROP TABLE IF EXISTS "user_arts_content";
-DROP TABLE IF EXISTS "user_arts";
-DROP TABLE IF EXISTS "arts_content";
-DROP TABLE IF EXISTS "arts";
 DROP TABLE IF EXISTS "users";
+DROP TABLE IF EXISTS "arts";
 DROP TABLE IF EXISTS "departments";
+DROP TABLE IF EXISTS "arts_content";
+DROP TABLE IF EXISTS "user_arts";
+DROP TABLE IF EXISTS "user_arts_content";
 
 PRAGMA foreign_keys = ON;
+
+
+CREATE TABLE "users" (
+    "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
+    "user_id"   TEXT NOT NULL,
+    "login" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "updated_at"    TEXT NOT NULL
+);
+CREATE UNIQUE INDEX "index_users_user_id" ON users(user_id);
+
+
+CREATE TABLE "arts" (
+    "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
+    "art_id"  INTEGER NOT NULL,
+    "department_id"  INTEGER NOT NULL,
+    "hash"  TEXT NOT NULL,
+    "updated_at"    TEXT NOT NULL
+);
+CREATE UNIQUE INDEX "index_arts_art_id" ON arts(art_id);
+CREATE UNIQUE INDEX "index_arts_hash" ON arts(hash);
+
 
 CREATE TABLE "departments" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16,27 +39,9 @@ CREATE TABLE "departments" (
 );
 CREATE UNIQUE INDEX "index_departments_department_id" ON departments(department_id);
 
-CREATE TABLE "arts" (
-    "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
-    "art_id"  INTEGER NOT NULL,
-    "department_id"  INTEGER NOT NULL,
-    "hash"  TEXT NOT NULL,
-    "updated_at"    TEXT NOT NULL
-);
-CREATE UNIQUE INDEX "index_arts_art_id" ON arts(art_id);
-CREATE INDEX "index_arts_department_id" ON arts(department_id);
-CREATE INDEX "index_arts_hash" ON arts(hash);
-
-CREATE TABLE "users" (
-    "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
-    "login" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "updated_at"    TEXT NOT NULL
-);
 
 CREATE TABLE "arts_content" (
-    "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
+    "id"    INTEGER PRIMARY KEY,
     "art_id" INTEGER NOT NULL,
     "isHighlight"   BOOLEAN,
     "accessionYear" INTEGER,
@@ -80,9 +85,10 @@ CREATE INDEX "index_arts_content_art_id" ON arts_content(art_id);
 
 CREATE TABLE "user_arts" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
-    "user_id"   INTEGER NOT NULL,
+    "user_id"   TEXT NOT NULL,
     "art_id"    INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    "updated_at"    TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (art_id) REFERENCES arts(art_id)
 );
 CREATE INDEX "index_user_arts_user_id" ON user_arts(user_id);
