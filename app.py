@@ -6,6 +6,7 @@ from classes.auth import Auth
 from classes.dep import Departments
 from classes.arts import Arts
 from classes.cont import Cont
+from classes.fav import Fav
 
 
 app = Flask(__name__)
@@ -22,6 +23,8 @@ max_pages_in_pagination = 20
 @app.route('/gallery/<string:dep_uri>/<int:page>')
 def index(dep_uri=default_dep_uri, page=default_page):
     parameters = {}
+    parameters['dep_uri'] = dep_uri
+    parameters['page'] = page
 
     # utworzenie instancji klasy DB
     db = DB(db_file)
@@ -68,8 +71,7 @@ def index(dep_uri=default_dep_uri, page=default_page):
 
         #utworzenie instancji klasy Arts zawierającej metody obsługujące indeksy produktów
         cont = Cont(db.get_db(), Museum_api())
-
-        print(arts_id)
+        parameters['cont'] = cont
 
         #Aktualizacja contentu do bazy (o ile potrzeba) dla produktów dla wybranej strony i departamentu
         for art_id in arts_id:
@@ -79,18 +81,18 @@ def index(dep_uri=default_dep_uri, page=default_page):
         #Przygotowanie contentu do wyświetlenia
         contents = cont.get_contents(arts_id)
 
-        for content in contents:
-            print(content)
-
         #utworzenie słownika nazw parametrów
         names = {name: cont.get_human_name(name) for name in cont.get_cols_to_need_names()}
         parameters['names'] = names
 
-        for key, val in parameters.items():
-            print(key, ':', val)
-
         #Dodatnie contentu zalogowanego użytkownika
-        #contents = cont.get_contents_from_user(contents, user_id)
+        contents = cont.get_contents_from_user(contents, user_id)
+        parameters['contents'] = contents
+
+
+
+        for content in contents:
+            print(content)
 
 
         '''
@@ -102,29 +104,14 @@ def index(dep_uri=default_dep_uri, page=default_page):
         parameters['pagination'] = pagination
 
 
-
-
-
-        # Utworzenie głównego contentu
-
-        
-        parameters['contents'] = contents
-        parameters['contents_user'] = contents_user
-
-
-
-
-
-        for key, val in parameters.items():
-            print(key,':',val)
-
-        return render_template('gallery.html', **parameters)
         '''
+
+        return render_template('index.html', **parameters)
 
     parameters['contents'] = ''
     parameters['names'] = ''
 
-    return render_template('gallery.html', **parameters)
+    return render_template('index.html', **parameters)
 
 
 @app.route('/favorites')
@@ -193,6 +180,34 @@ def create_user():
                 return render_template('create_user.html', error=error, login=login, name=your_name)
             auth.insert_user(login, your_name, password)
         return redirect(url_for('index'))
+
+@app.route('/save', methods=['POST'])
+def save():
+    if request.method == 'POST':
+        db = DB(db_file)
+        auth = Auth(db.get_db())
+        user_id = auth.get_user_id()
+        if user_id:
+            fav = Fav(db.get_db())
+            print(request.form)
+            dep_uri = request.form.get('dep_uri', '')
+            page = request.form.get('page', 0)
+            hash = request.form.get('hash', '')
+            art_id = request.form.get('art_id', '')
+            action = request.form.get('action', '')
+
+            if (action == 'add'):
+                fav.add_to_favorites(user_id, art_id, hash)
+            elif (action == 'remove'):
+                fav.remove_from_favorites(hash)
+
+    return redirect(url_for('index', dep_uri=dep_uri, page=page))
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

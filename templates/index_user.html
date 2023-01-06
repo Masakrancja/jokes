@@ -1,0 +1,35 @@
+<div class="row mt-4">
+	<div class="col-md-2">
+		<form name="my_form" action="{{ url_for('save') }}" method="POST">
+			<input type="hidden" name="page" value="{{ page }}">
+			<input type="hidden" name="dep_uri" value="{{ dep_uri }}">
+			<input type="hidden" name="hash" value="{{ content.hash }}">
+			<input type="hidden" name="art_id" value="{{ content.art_id }}">
+			{% if content.is_favorites %}
+				<input type="hidden" name="action" value="remove">
+				<button type="submit" class="btn btn-danger">
+					Remowe from favorites
+				</button>
+			{% else %}
+			<input type="hidden" name="action" value="add">
+			<button type="submit" class="btn btn-success btn-lg">
+				Add to favorites
+			</button>
+		{% endif %}
+		</form>
+	</div>
+	<div class="col-md-8">
+		<div>
+			{% if content.note %}
+				<div class="info">Notice</div>
+				<div>{{ content.note }}</div>
+			{% endif %}
+		</div>
+	</div>
+	<div class="col-md-2">
+		<div class="note">
+
+
+		</div>
+	</div>
+</div>

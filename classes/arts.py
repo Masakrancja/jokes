@@ -49,9 +49,9 @@ class Arts():
                     sql_data = (now_string, result['id'])
                     cursor.execute(sql, sql_data)
                 else:
-                    sql = "INSERT INTO arts (art_id, department_id, hash, updated_at) VALUES (?, ?, ?, ?)"
-                    hash = hashlib.sha256(str(art_id).encode() + str(department_id).encode()).hexdigest()
-                    sql_data = (art_id, department_id, hash, now_string)
+                    sql = "INSERT INTO arts (art_id, department_id, updated_at) VALUES (?, ?, ?)"
+                    #hash = hashlib.sha256(str(art_id).encode() + str(department_id).encode()).hexdigest()
+                    sql_data = (art_id, department_id, now_string)
                     cursor.execute(sql, sql_data)
             self.conn.commit()
         except sqlite3.Error as err:

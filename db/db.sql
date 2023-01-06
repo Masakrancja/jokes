@@ -23,11 +23,9 @@ CREATE TABLE "arts" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
     "art_id"  INTEGER NOT NULL,
     "department_id"  INTEGER NOT NULL,
-    "hash"  TEXT NOT NULL,
     "updated_at"    TEXT NOT NULL
 );
 CREATE UNIQUE INDEX "index_arts_art_id" ON arts(art_id);
-CREATE UNIQUE INDEX "index_arts_hash" ON arts(hash);
 
 
 CREATE TABLE "departments" (
@@ -83,16 +81,18 @@ CREATE TABLE "arts_content" (
 );
 CREATE INDEX "index_arts_content_art_id" ON arts_content(art_id);
 
+
 CREATE TABLE "user_arts" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,
     "user_id"   TEXT NOT NULL,
     "art_id"    INTEGER NOT NULL,
+    "hash"  TEXT NOT NULL,
     "updated_at"    TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (art_id) REFERENCES arts(art_id)
 );
-CREATE INDEX "index_user_arts_user_id" ON user_arts(user_id);
-CREATE INDEX "index_user_arts_art_id" ON user_arts(art_id);
+CREATE INDEX "index_user_hash" ON user_arts(hash);
+
 
 CREATE TABLE "user_arts_content" (
     "id"    INTEGER PRIMARY KEY AUTOINCREMENT,

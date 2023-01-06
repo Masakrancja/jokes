@@ -27,11 +27,7 @@ class Utils():
 
 
 
-    def is_link(self, text):
-        result = re.match(r'^https?://', str(text))
-        if result and result.span():
-            return True
-        return False
+
 
 
 

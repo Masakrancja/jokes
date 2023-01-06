@@ -2,6 +2,7 @@ import datetime
 import sqlite3
 import json
 import re
+import hashlib
 from flask import abort
 class Cont():
     def __init__(self, conn, museum_api):
@@ -125,29 +126,20 @@ class Cont():
                 if row:
                     tab = {}
                     row = dict(row)
-                    tab['hash'] = self.get_hash_art(art_id, row['department_id'])
+                    tab['art_id'] = row.pop('art_id')
                     tab['title'] = row.pop('title')
                     tab['image'] = row.pop('primaryImageSmall')
-                    row.pop('art_id')
-                    tab['info'] = row
-                    result.append({art_id:tab})
+                    '''                  
+                    if row['isHighlight'] == 1:
+                        row['isHighlight'] = 'Yes'
+                    else:
+                        row['isHighlight'] = 'No'
+                    '''
+                    tab['desc'] = row
+                    result.append(tab)
             return result
         except sqlite3.Error as err:
             abort(500, description=f"Error database - get_contents {err}")
-
-
-    def get_hash_art(self, art_id, department_id):
-        try:
-            cursor = self.conn.cursor()
-            sql = "SELECT hash FROM arts WHERE art_id = ? and department_id = ?"
-            sql_data = (art_id, department_id)
-            cursor.execute(sql, sql_data)
-            result = cursor.fetchone()
-            if result:
-                return result['hash']
-            return None
-        except sqlite3.Error as err:
-            abort(500, description=f"Error database - get_hash_art {err}")
 
 
     def get_human_name(self, name):
@@ -161,10 +153,45 @@ class Cont():
         cols = self.get_cols_names_from_table(table)
         return self.del_cols_names_from_table(cols, cols_to_delete)
 
+
     def get_contents_from_user(self, contents, user_id):
         if user_id:
-           for content in contents:
-               pass
+            for index, content in enumerate(contents):
+                hash = self.create_hash(user_id, content['art_id'])
+                contents[index]['hash'] = hash
+                info, note, is_favorites = self.get_info_note(hash)
+                contents[index]['info'] = info
+                contents[index]['note'] = note
+                contents[index]['is_favorites'] = is_favorites
+        return contents
 
 
+    def create_hash(self, user_id, art_id):
+        return hashlib.sha256((user_id + str(art_id)).encode()).hexdigest()
 
+
+    def get_info_note(self, hash):
+        try:
+            result = ('', '', 0)
+            cursor = self.conn.cursor()
+            sql = "SELECT id FROM user_arts WHERE hash = ?"
+            sql_data = (hash, )
+            cursor.execute(sql, sql_data)
+            row = cursor.fetchone()
+            if row:
+                sql = "SELECT info, note FROM user_arts_content WHERE user_arts_id = ?"
+                sql_data = (row['id'], )
+                cursor.execute(sql, sql_data)
+                row = cursor.fetchone()
+                if row:
+                    result = (row['info'], row['note'], 1)
+            return result
+        except sqlite3.Error as err:
+            abort(500, description=f"Error database - get_info_note {err}")
+
+
+    def is_link(self, text):
+        result = re.match(r'^https?://', str(text))
+        if result and result.span():
+            return True
+        return False
