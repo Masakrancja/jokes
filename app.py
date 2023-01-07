@@ -1,5 +1,5 @@
 import re
-from flask import Flask, url_for, render_template, redirect, request
+from flask import Flask, url_for, render_template, redirect, request, session
 from classes.museum_api import Museum_api
 from classes.db import DB
 from classes.auth import Auth
@@ -7,6 +7,8 @@ from classes.dep import Departments
 from classes.arts import Arts
 from classes.cont import Cont
 from classes.fav import Fav
+from classes.pages import Pages
+from classes.process import Process
 
 
 app = Flask(__name__)
@@ -23,6 +25,8 @@ max_pages_in_pagination = 20
 @app.route('/gallery/<string:dep_uri>/<int:page>')
 def index(dep_uri=default_dep_uri, page=default_page):
     parameters = {}
+    session['dep_uri'] = dep_uri
+    session['page'] = page
     parameters['dep_uri'] = dep_uri
     parameters['page'] = page
 
@@ -89,22 +93,21 @@ def index(dep_uri=default_dep_uri, page=default_page):
         contents = cont.get_contents_from_user(contents, user_id)
         parameters['contents'] = contents
 
+        #Policzenie ile jest stron
+        pages = Pages(db.get_db())
+        all_pages = pages.get_pages_count(department_id, max_for_page)
 
+        print('all_pages:', all_pages)
+
+        #Przygotowanie danych do paginacji
+        pagination = pages.get_pagination(dep_uri, page, all_pages, max_pages_in_pagination)
+        print('pagination:', pagination)
+
+        parameters['pagination'] = pagination
 
         for content in contents:
             print(content)
 
-
-        '''
-        #Policzenie ile jest stron
-        pages = utils.get_pages_count(department_id, max_for_page)
-
-        #Przygotowanie danych do paginacji
-        pagination = utils.get_pagination(dep_uri, page, pages, max_pages)
-        parameters['pagination'] = pagination
-
-
-        '''
 
         return render_template('index.html', **parameters)
 
@@ -190,8 +193,8 @@ def save():
         if user_id:
             fav = Fav(db.get_db())
             print(request.form)
-            dep_uri = request.form.get('dep_uri', '')
-            page = request.form.get('page', 0)
+            dep_uri = session.get('dep_uri', '')
+            page = session.get('page', 0)
             hash = request.form.get('hash', '')
             art_id = request.form.get('art_id', '')
             action = request.form.get('action', '')
@@ -204,6 +207,24 @@ def save():
     return redirect(url_for('index', dep_uri=dep_uri, page=page))
 
 
+@app.route('/process_get_info', methods=['POST'])
+def process_get_info():
+    if request.method == 'POST':
+        db = DB(db_file)
+        process = Process(db.get_db())
+        hash = request.form.get('hash', '')
+        return process.get_value(hash, 'info')
+    return ''
+
+@app.route('/process_set_info', methods=['POST'])
+def process_set_info():
+    if request.method == 'POST':
+        db = DB(db_file)
+        process = Process(db.get_db())
+        text = request.form.get('text', '')
+        hash = request.form.get('hash', '')
+        return process.set_value(text, hash, 'info')
+    return ''
 
 
 

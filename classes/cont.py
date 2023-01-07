@@ -129,12 +129,10 @@ class Cont():
                     tab['art_id'] = row.pop('art_id')
                     tab['title'] = row.pop('title')
                     tab['image'] = row.pop('primaryImageSmall')
-                    '''                  
                     if row['isHighlight'] == 1:
                         row['isHighlight'] = 'Yes'
                     else:
                         row['isHighlight'] = 'No'
-                    '''
                     tab['desc'] = row
                     result.append(tab)
             return result

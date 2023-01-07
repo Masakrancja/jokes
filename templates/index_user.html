@@ -1,8 +1,6 @@
-<div class="row mt-4">
+<div class="row mt-4" hash="{{ content.hash }}">
 	<div class="col-md-2">
 		<form name="my_form" action="{{ url_for('save') }}" method="POST">
-			<input type="hidden" name="page" value="{{ page }}">
-			<input type="hidden" name="dep_uri" value="{{ dep_uri }}">
 			<input type="hidden" name="hash" value="{{ content.hash }}">
 			<input type="hidden" name="art_id" value="{{ content.art_id }}">
 			{% if content.is_favorites %}
@@ -19,17 +17,27 @@
 		</form>
 	</div>
 	<div class="col-md-8">
-		<div>
-			{% if content.note %}
-				<div class="info">Notice</div>
-				<div>{{ content.note }}</div>
-			{% endif %}
-		</div>
+		{% if content.is_favorites %}
+			<div class="info">
+				<div>Info</div>
+				{% if content.info %}
+				<div class="info_content">{{ content.info }}</div>
+				{% else %}
+					<div class="info_content">Click to add info</div>
+				{% endif %}
+			</div>
+		{% endif %}
 	</div>
 	<div class="col-md-2">
-		<div class="note">
-
-
-		</div>
+		{% if content.is_favorites %}
+			<div class="note">
+				<div>Note</div>
+				{% if content.note == -1 %}
+					<div class="note_content">Click to add note</div>
+				{% else %}
+					<div class="note_content">{{ content.note }}</div>
+				{% endif %}
+			</div>
+		{% endif %}
 	</div>
 </div>
