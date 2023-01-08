@@ -97,23 +97,13 @@ def index(dep_uri=default_dep_uri, page=default_page):
         pages = Pages(db.get_db())
         all_pages = pages.get_pages_count(department_id, max_for_page)
 
-        print('all_pages:', all_pages)
-
         #Przygotowanie danych do paginacji
         pagination = pages.get_pagination(dep_uri, page, all_pages, max_pages_in_pagination)
-        print('pagination:', pagination)
-
         parameters['pagination'] = pagination
-
-        for content in contents:
-            print(content)
-
-
         return render_template('index.html', **parameters)
 
     parameters['contents'] = ''
     parameters['names'] = ''
-
     return render_template('index.html', **parameters)
 
 
@@ -184,6 +174,7 @@ def create_user():
             auth.insert_user(login, your_name, password)
         return redirect(url_for('index'))
 
+
 @app.route('/save', methods=['POST'])
 def save():
     if request.method == 'POST':
@@ -192,18 +183,15 @@ def save():
         user_id = auth.get_user_id()
         if user_id:
             fav = Fav(db.get_db())
-            print(request.form)
             dep_uri = session.get('dep_uri', '')
             page = session.get('page', 0)
             hash = request.form.get('hash', '')
             art_id = request.form.get('art_id', '')
             action = request.form.get('action', '')
-
             if (action == 'add'):
                 fav.add_to_favorites(user_id, art_id, hash)
             elif (action == 'remove'):
                 fav.remove_from_favorites(hash)
-
     return redirect(url_for('index', dep_uri=dep_uri, page=page))
 
 
@@ -227,8 +215,25 @@ def process_set_info():
     return ''
 
 
+@app.route('/process_get_note', methods=['POST'])
+def process_get_note():
+    if request.method == 'POST':
+        db = DB(db_file)
+        process = Process(db.get_db())
+        hash = request.form.get('hash', '')
+        return process.get_value(hash, 'note')
+    return ''
 
 
+@app.route('/process_set_note', methods=['POST'])
+def process_set_note():
+    if request.method == 'POST':
+        db = DB(db_file)
+        process = Process(db.get_db())
+        note = request.form.get('note', '')
+        hash = request.form.get('hash', '')
+        return process.set_value(note, hash, 'note')
+    return ''
 
 
 if __name__ == '__main__':
