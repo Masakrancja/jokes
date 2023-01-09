@@ -59,8 +59,8 @@ class Arts():
 
 
     def get_arts_for_selected_page(self, page, department_id, max_for_page):
+        result = []
         try:
-            result = []
             cursor = self.conn.cursor()
             sql = "SELECT art_id FROM arts WHERE department_id = ? ORDER BY art_id ASC LIMIT ?, ?"
             sql_data = (department_id, page * max_for_page, max_for_page)
@@ -71,3 +71,30 @@ class Arts():
             return result
         except sqlite3.Error as err:
             abort(500, description=f"Error database - get_objects_for_selected {err}")
+
+
+    def get_user_arts_by_param(self, user_id, department_id, note, only_foto, has_my_info):
+        result = []
+        try:
+            cursor = self.conn.cursor()
+            sql = "SELECT ua.art_id FROM user_arts AS ua"
+            sql += ' INNER JOIN user_arts_content AS uac ON ua.id = uac.user_arts_id'
+            sql += ' INNER JOIN arts_content AS ac ON ua.art_id = ac.art_id'
+            sql += ' WHERE ua.user_id = ?'
+            sql_data = []
+            sql_data.append(user_id)
+            if department_id:
+                sql += ' and department_id = ?'
+                sql_data.append(department_id)
+            if only_foto == 'yes':
+                sql += ' and ac.primaryImage != ""'
+            if has_my_info == 'yes':
+                sql += ' and uac.info !=""'
+            sql += ' ORDER BY uac.note ' + note
+            cursor.execute(sql, tuple(sql_data))
+            rows = cursor.fetchall()
+            for row in rows:
+                result.append(row['art_id'])
+            return result
+        except sqlite3.Error as err:
+            abort(500, description=f"Error database - get_arts_by_param {err}")

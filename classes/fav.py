@@ -1,8 +1,5 @@
 import datetime
 import sqlite3
-import json
-import re
-import hashlib
 from flask import abort
 
 class Fav():

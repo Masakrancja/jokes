@@ -48,3 +48,11 @@ class Pages:
             pagination[item] = {'dep_uri': dep_uri, 'page': item, 'disable': 0}
 
         return pagination
+
+    def get_user_pages_count(self, arts_id, max_for_page):
+        if max_for_page == 0:
+            max_for_page = 10
+        pages =  len(arts_id) // max_for_page
+        if (len(arts_id) % max_for_page) > 0:
+            pages += 1
+        return pages
