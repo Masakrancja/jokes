@@ -1,0 +1,53 @@
+{% for content in contents %}
+    <div class="container-fluid p-2 m-2 product">
+        <div class="row">
+            <div class="col-md-1">
+            </div>
+            <div class="col-md-10">
+                <h3 class="text-center">
+                    {{ content.title }}
+                </h3>
+            </div>
+            <div class="col-md-1">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                {% for name in names %}
+                    {% if content.desc[name] %}
+                        <div class="row">
+                            <div class="col-md-3">
+                                {{ names[name] }}
+                            </div>
+                            <div class="col-md-9">
+                                {% if cont.is_link(content.desc[name]) %}
+                                    <a href="{{ content.desc[name] }}" target="_blank">{{ content.desc[name] }}</a>
+                                {% else %}
+                                    {{ content.desc[name] }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+             <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-3">
+                    </div>
+                    <div class="col-md-6">
+                        {% if content.image %}
+                            <img alt="" src=" {{ content.image }} " class="rounded img-fluid" />
+                        {% else %}
+                            <img alt="" src=" {{ url_for('static', filename="not_available.png") }} " class="rounded img-fluid" />
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if 'hash' in content %}
+            {% include 'index_user.html' %}
+        {% endif %}
+    </div>
+{% endfor %}

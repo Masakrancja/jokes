@@ -18,12 +18,3 @@ class Museum_api():
 
 
 
-#if __name__ == '__main__':
-    #museum_api = Museum_api()
-    #r = museum_api.get_departments()
-    #r = museum_api.get_objects(1)
-   #r = museum_api.get_object(214)
-
-
-
-

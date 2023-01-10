@@ -10,6 +10,10 @@ class Auth():
 
 
     def get_user_id(self):
+        """
+        Pobranie id zalogowanego usera z sesji
+        :return: string
+        """
         if 'user_id' in session:
             user_id = session['user_id']
             if self.check_if_user_id_exist(user_id):
@@ -19,6 +23,12 @@ class Auth():
         return ''
 
     def check_if_user_id_exist(self, user_id):
+        """
+        Sprawdzenie czy id usera już istnieje w bazie 'users'
+        :param user_id: string
+        :return: boolean
+        """
+
         try:
             cursor = self.conn.cursor()
             sql = "SELECT id FROM users WHERE user_id = ?"
@@ -33,6 +43,11 @@ class Auth():
 
 
     def get_user_name(self, user_id):
+        """
+        Pobrane pełnej nazwy usera na postawie jego identyfikatora
+        :param user_id: string
+        :return: string
+        """
         try:
             cursor = self.conn.cursor()
             sql = "SELECT name FROM users WHERE user_id = ?"
@@ -47,12 +62,21 @@ class Auth():
 
 
     def logout(self):
+        """
+        Usunięcie id usera z sesji
+        :return: None
+        """
         if 'user_id' in session:
             session.pop('user_id')
+        return None
 
 
     def check_login(self, login):
-        #login = login.lower()
+        """
+        Walidacja loginu
+        :param login: string
+        :return: string
+        """
         if len(login) < 3:
             return 'Login name should be great than 3 characters'
         elif len(login) > 10:
@@ -68,6 +92,11 @@ class Auth():
 
 
     def check_your_name(self, name):
+        """
+        Walidacja pełnej nazwy usera
+        :param name: string
+        :return: string
+        """
         if len(name) < 3:
             return 'Your name should be great than 3 characters'
         elif len(name) > 20:
@@ -80,6 +109,12 @@ class Auth():
 
 
     def check_passwords(self, password, password2):
+        """
+        Walidacja hasła
+        :param password: string
+        :param password2: string
+        :return:
+        """
         if len(password) < 6:
             return 'Password length should have min 6 characters'
         if (password != password2):
@@ -88,6 +123,11 @@ class Auth():
 
 
     def check_login_isset(self, login):
+        """
+        Sprawdzenie czy podany login już istnieje w db
+        :param login: string
+        :return: boolean
+        """
         try:
             cursor = self.conn.cursor()
             sql = "SELECT id FROM users WHERE login = ?"
@@ -102,6 +142,13 @@ class Auth():
 
 
     def insert_user(self, login, name, password):
+        """
+        Dodanie usera do db
+        :param login: string
+        :param name: string
+        :param password: string
+        :return: None
+        """
         now = datetime.datetime.now()
         format_string = "%Y-%m-%d %H:%M:%S"
         now_string = now.strftime(format_string)
@@ -118,6 +165,13 @@ class Auth():
 
 
     def check_credentials(self, login, password):
+        """
+        Sprawdzenie czy user podał poprawne dane podczas logowania
+        a jeżeli tak to wstawienie jego identyfikatora do sesji
+        :param login: string
+        :param password: string
+        :return: string
+        """
         try:
             cursor = self.conn.cursor()
             hashed_password = hashlib.sha256(password.encode()).hexdigest()

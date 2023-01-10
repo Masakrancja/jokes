@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
 <form name="form_login" method="POST" action="{{ url_for('create_user') }}">
   <div class="mb-3 row">
@@ -41,7 +40,6 @@
     <div class="col-1"><button type="submit" class="btn btn-secondary" name="sub_cancel">Cancel</button></div>
     <div class="col-4"></div>
   </div>
-
   {% if error %}
   <div class="mb-3 row">
     <div class="col-2"></div>
@@ -49,6 +47,5 @@
     <div class="col-2"></div>
   </div>
   {% endif %}
-
 </form>
 {% endblock %}

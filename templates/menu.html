@@ -9,7 +9,6 @@
               {% include 'menu_departments.html' %}
               <a class="nav-link active" href="{{ url_for('index') }}">Gallery</a>
                 {% if user_id %}
-                    <a class="nav-link" href="{{ url_for('favorites') }}">Favorites</a>
                     <a class="nav-link">You are logged as: {{ auth.get_user_name(user_id) }}</a>
                     <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                 {% else %}

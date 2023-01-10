@@ -93,17 +93,3 @@ class Departments():
     def create_uri_name(self, name):
         name = re.sub(r'[^A-Za-z0-9]', '-', name).lower()
         return re.sub(r'-+', '-', name)
-
-
-    def get_departaments_uri(self):
-        result = []
-        try:
-            cursor = self.conn.cursor()
-            sql = "SELECT name_uri FROM departments"
-            cursor.execute(sql)
-            rows = cursor.fetchall()
-            for row in rows:
-                result.append(row['name_uri'])
-            return result
-        except sqlite3.Error as err:
-            abort(500, description=f"Error database - get_departaments_uri {err}")
