@@ -14,6 +14,12 @@ class Cont():
 
 
     def get_content(self, art_id):
+        """
+        Get content to given art id from museum api
+        and check if all is OK
+        :param art_id: integer
+        :return: collection
+        """
         object = self.museum_api.get_object(art_id)
         if object.status_code == 200:
             return json.loads(object.text)
@@ -22,6 +28,14 @@ class Cont():
 
 
     def check_if_update_art_content_is_needed(self, art_id, department_id, seconds=3600):
+        """
+        Check if is needed update content of arts id in chosen department id
+        :param art_id: integer
+        :param department_id: integer
+        :param seconds: integer
+        :return: True, if param seconds is greats than different between time from
+        last saved content to now, otherwise False
+        """
         earlier = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
         try:
             cursor = self.conn.cursor()

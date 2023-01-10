@@ -6,14 +6,14 @@ class DB():
 
     def tables(self):
         """
-        Tabele jakie są uzywane w aplikacji
+        Name of tables used in application
         :return: list
         """
         return ['arts', 'arts_content', 'departments', 'user_arts', 'user_arts_content', 'users']
 
     def get_db(self):
         """
-        Połączenie z bazą danych sqlite
+        Connect to database sqlite
         :return: resource
         """
         if 'db' not in g:
@@ -26,7 +26,7 @@ class DB():
 
     def close_db(self):
         """
-        Zamknięcie połączenia z bazą danych
+        Close open connection if is set
         :return: None
         """
         db = g.pop('db', None)
@@ -36,9 +36,9 @@ class DB():
 
     def check_if_table_exist(self, conn, table):
         """
-        Sprawdzenie czy podana tabela w bazie istnieje
-        :param conn:
-        :param table:
+        Check if given table name is set in database
+        :param conn: resource
+        :param table: string
         :return: boolean
         """
         cursor = conn.cursor()
@@ -49,9 +49,8 @@ class DB():
 
     def check_tables(self):
         """
-        Sprawdzenie czy wszystkie tabele w db zostały utworzone
-
-        :return: None, error 500
+        Check if all tables has been created
+        :return: None
         """
         for table in self.tables():
             if not self.check_if_table_exist(self.get_db(), table):

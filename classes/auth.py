@@ -11,7 +11,7 @@ class Auth():
 
     def get_user_id(self):
         """
-        Pobranie id zalogowanego usera z sesji
+        Get id logged user from session
         :return: string
         """
         if 'user_id' in session:
@@ -22,13 +22,17 @@ class Auth():
                 self.logout()
         return ''
 
+    def add_user_to_session(self, user_id):
+        session['user_id'] = user_id
+        return None
+
+
     def check_if_user_id_exist(self, user_id):
         """
-        Sprawdzenie czy id usera już istnieje w bazie 'users'
+        Check if id of user isset in database 'users'
         :param user_id: string
         :return: boolean
         """
-
         try:
             cursor = self.conn.cursor()
             sql = "SELECT id FROM users WHERE user_id = ?"
@@ -44,7 +48,7 @@ class Auth():
 
     def get_user_name(self, user_id):
         """
-        Pobrane pełnej nazwy usera na postawie jego identyfikatora
+        Get full name of user by his id
         :param user_id: string
         :return: string
         """
@@ -63,7 +67,7 @@ class Auth():
 
     def logout(self):
         """
-        Usunięcie id usera z sesji
+        Delete id of user from session
         :return: None
         """
         if 'user_id' in session:
@@ -73,7 +77,7 @@ class Auth():
 
     def check_login(self, login):
         """
-        Walidacja loginu
+        Validate login name
         :param login: string
         :return: string
         """
@@ -93,7 +97,7 @@ class Auth():
 
     def check_your_name(self, name):
         """
-        Walidacja pełnej nazwy usera
+        Validate full name of user
         :param name: string
         :return: string
         """
@@ -110,10 +114,10 @@ class Auth():
 
     def check_passwords(self, password, password2):
         """
-        Walidacja hasła
+        Validate password
         :param password: string
         :param password2: string
-        :return:
+        :return: String
         """
         if len(password) < 6:
             return 'Password length should have min 6 characters'
@@ -124,7 +128,7 @@ class Auth():
 
     def check_login_isset(self, login):
         """
-        Sprawdzenie czy podany login już istnieje w db
+        check if got login name is set in database
         :param login: string
         :return: boolean
         """
@@ -143,7 +147,7 @@ class Auth():
 
     def insert_user(self, login, name, password):
         """
-        Dodanie usera do db
+        Adding user into database
         :param login: string
         :param name: string
         :param password: string
@@ -160,14 +164,15 @@ class Auth():
             sql_data = (hashed_user_id, login, hashed_password, name, now_string)
             cursor.execute(sql, sql_data)
             self.conn.commit()
+            self.add_user_to_session(hashed_user_id)
         except sqlite3.Error as err:
             abort(500, description=f"Error database - insert_user {err}")
 
 
     def check_credentials(self, login, password):
         """
-        Sprawdzenie czy user podał poprawne dane podczas logowania
-        a jeżeli tak to wstawienie jego identyfikatora do sesji
+        Check if user sent correct datas during login
+        If yes that put his id to session
         :param login: string
         :param password: string
         :return: string
@@ -182,7 +187,7 @@ class Auth():
             if not row:
                 return 'Login and / or password are incorrect. Please try again'
             else:
-                session['user_id'] = row['user_id']
+                self.add_user_to_session(row['user_id'])
             return ''
         except sqlite3.Error as err:
             abort(500, description=f"Error database - check_credentials {err}")

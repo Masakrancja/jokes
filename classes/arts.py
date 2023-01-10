@@ -1,7 +1,6 @@
 import datetime
 import sqlite3
 import json
-import hashlib
 from flask import abort
 class Arts():
     def __init__(self, conn, museum_api):
@@ -10,6 +9,13 @@ class Arts():
 
 
     def check_if_update_arts_is_needed(self, department_id, seconds=3600):
+        """
+        Check if is needed update id of arts in chosen department id
+        :param department_id:
+        :param seconds:
+        :return: True, if param seconds is greats than different between time from
+        last saved content to now, otherwise False
+        """
         earlier = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
         try:
             cursor = self.conn.cursor()
@@ -26,6 +32,11 @@ class Arts():
 
 
     def get_arts(self, department_id):
+        """
+        Get arts id from museum api and check result
+        :param department_id: integer
+        :return: collection
+        """
         objects = self.museum_api.get_objects(department_id)
         if objects.status_code == 200:
             return json.loads(objects.text)
@@ -34,6 +45,12 @@ class Arts():
 
 
     def update_arts(self, arts_id, department_id):
+        """
+        Update numbers id of arts to database
+        :param arts_id: list
+        :param department_id: integer
+        :return: None
+        """
         now = datetime.datetime.now()
         format_string = "%Y-%m-%d %H:%M:%S"
         now_string = now.strftime(format_string)
@@ -50,7 +67,6 @@ class Arts():
                     cursor.execute(sql, sql_data)
                 else:
                     sql = "INSERT INTO arts (art_id, department_id, updated_at) VALUES (?, ?, ?)"
-                    #hash = hashlib.sha256(str(art_id).encode() + str(department_id).encode()).hexdigest()
                     sql_data = (art_id, department_id, now_string)
                     cursor.execute(sql, sql_data)
             self.conn.commit()
@@ -59,6 +75,13 @@ class Arts():
 
 
     def get_arts_for_selected_page(self, page, department_id, max_for_page):
+        """
+        Get numbers id of arts from database for chosen page and limit arts for page
+        :param page: integer
+        :param department_id: integer
+        :param max_for_page:  integer
+        :return: list
+        """
         result = []
         try:
             cursor = self.conn.cursor()

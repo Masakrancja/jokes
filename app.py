@@ -16,6 +16,7 @@ app.secret_key = 'dev'
 db_file = 'db/museum.sqlite'
 default_dep_uri = 'the-robert-lehman-collection'
 default_page = 0
+default_me = 'all'
 max_for_page = 10
 max_pages_in_pagination = 20
 
@@ -23,12 +24,14 @@ max_pages_in_pagination = 20
 @app.route('/gallery/')
 @app.route('/gallery/<string:dep_uri>/')
 @app.route('/gallery/<string:dep_uri>/<int:page>')
-def index(dep_uri=default_dep_uri, page=default_page):
+@app.route('/gallery/<string:dep_uri>/<int:page>/<string:me>')
+def index(dep_uri=default_dep_uri, page=default_page, me=default_me):
     parameters = {}
     session['dep_uri'] = dep_uri
     session['page'] = page
     parameters['dep_uri'] = dep_uri
     parameters['page'] = page
+    parameters['me'] = me
 
     # utworzenie instancji klasy DB
     db = DB(db_file)
@@ -178,7 +181,7 @@ def save():
         user_id = auth.get_user_id()
         if user_id:
             fav = Fav(db.get_db())
-            dep_uri = session.get('dep_uri', '')
+            dep_uri = session.get('dep_uri', '') #POprawić zeby nie brac z sesji
             page = session.get('page', 0)
             hash = request.form.get('hash', '')
             art_id = request.form.get('art_id', '')
