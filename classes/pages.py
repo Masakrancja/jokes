@@ -42,21 +42,22 @@ class Pages:
 
     def get_pagination(self, dep_uri, page, pages, max_pages, me):
         pagination = {}
-
+        if pages <= 1:
+            return pagination
         #prev
-        if page > 0:
+        if page > 1:
             pagination['prev'] = {'dep_uri': dep_uri, 'page': page - 1, 'disable': 0, 'me': me}
         else:
-            pagination['prev'] = {'dep_uri': dep_uri, 'page': 0, 'disable': 1, 'me': me}
+            pagination['prev'] = {'dep_uri': dep_uri, 'page': 1, 'disable': 1, 'me': me}
 
         #next
         if page < pages:
             pagination['next'] = {'dep_uri': dep_uri, 'page': page + 1, 'disable': 0, 'me': me}
         else:
-            pagination['next'] = {'dep_uri': dep_uri, 'page': 0, 'disable': 1, 'me': me}
+            pagination['next'] = {'dep_uri': dep_uri, 'page': pages, 'disable': 1, 'me': me}
 
         if pages <= max_pages:
-            tab_range = range(0, pages)
+            tab_range = range(1, pages + 1)
         else:
             if (pages - page) > max_pages:
                 tab_range = range(page, max_pages + page)

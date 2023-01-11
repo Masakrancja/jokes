@@ -3,14 +3,19 @@
       {% if pagination.prev.disable %}
         <li class="page-item disabled"><a class="page-link">Previous</a></li>
       {% else %}
-        <li class="page-item"><a class="page-link" href="{{url_for('index', dep_uri=pagination.prev.dep_uri, page=pagination.prev.page, me=pagination.prev.me) }}">Previous</a></li>
+        <li class="page-item">
+            <a class="page-link"
+               href="{{url_for('index', dep_uri=pagination.prev.dep_uri, page=pagination.prev.page, me=pagination.prev.me) }}">Previous</a>
+        </li>
       {% endif %}
       {% for pagine in pagination %}
         {% if pagine != 'prev' and pagine != 'next' %}
             {% if pagine.disable %}
-                <li class="page-item"><a class="page-link">{{ pagination[pagine].page + 1 }}</a></li>
+                <li class="page-item"><a class="page-link">{{ pagination[pagine].page }}</a></li>
             {% else %}
-                <li class="page-item"><a class="page-link" href="{{url_for('index', dep_uri=pagination[pagine].dep_uri, page=pagination[pagine].page, me=pagination[pagine].me) }}">{{ pagination[pagine].page + 1 }}</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="{{url_for('index', dep_uri=pagination[pagine].dep_uri, page=pagination[pagine].page, me=pagination[pagine].me) }}">{{ pagination[pagine].page }}</a>
+                </li>
             {% endif %}
         {% endif %}
       {% endfor %}

@@ -1,8 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-    {% if department_name %}
-        <div class="text-center">Department: <span>{{ department_name }}</span></div>
-    {% endif %}
     {% if pagination %}
         {% include 'pagination.html' %}
     {% endif %}

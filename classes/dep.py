@@ -1,5 +1,7 @@
 import datetime, sqlite3, json, re
 from flask import abort
+
+
 class Departments():
     def __init__(self, conn, museum_api):
         self.conn = conn
@@ -101,3 +103,33 @@ class Departments():
         if not user_id and me == 'only-me':
             return 'all'
         return me
+
+
+    def get_all_counts_in_departments(self, departments):
+        for i, department in enumerate(departments):
+            try:
+                cursor = self.conn.cursor()
+                sql = "SELECT COUNT(id) AS c FROM arts WHERE department_id = ?"
+                sql_data = (department['department_id'], )
+                cursor.execute(sql, sql_data)
+                row = cursor.fetchone()
+                departments[i]['count'] = row['c']
+            except sqlite3.Error:
+                departments[i]['count'] = 0
+        return departments
+
+
+    def get_all_user_counts_in_departments(self, departments, user_id):
+        for i, department in enumerate(departments):
+            try:
+                cursor = self.conn.cursor()
+                sql = "SELECT COUNT(a.id) AS c FROM arts AS a " \
+                      "INNER JOIN user_arts AS ua ON a.art_id = ua.art_id " \
+                      "WHERE ua.user_id = ? and a.department_id = ?"
+                sql_data = (user_id, department['department_id'])
+                cursor.execute(sql, sql_data)
+                row = cursor.fetchone()
+                departments[i]['count'] = row['c']
+            except sqlite3.Error:
+                departments[i]['count'] = 0
+        return departments

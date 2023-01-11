@@ -16,9 +16,9 @@ app.secret_key = 'dev'
 db_file = 'db/museum.sqlite'
 default_dep_uri = 'the-robert-lehman-collection'
 default_dep_id = 15
-default_page = 0
+default_page = 1
 default_me = 'all'
-max_for_page = 3
+max_for_page = 10
 max_pages_in_pagination = 20
 
 @app.route('/')
@@ -27,6 +27,8 @@ max_pages_in_pagination = 20
 @app.route('/gallery/<string:dep_uri>/<int:page>')
 @app.route('/gallery/<string:dep_uri>/<int:page>/<string:me>')
 def index(dep_uri=default_dep_uri, page=default_page, me=default_me):
+    if page <= 0:
+        page = 1
     parameters = {}
     parameters['dep_uri'] = dep_uri
     parameters['page'] = page
@@ -50,12 +52,22 @@ def index(dep_uri=default_dep_uri, page=default_page, me=default_me):
     dep = Departments(db.get_db(), Museum_api())
     parameters['dep'] = dep
 
+    #pobranie parametru /me
+    me = dep.get_correct_me(user_id, me)
+    parameters['me'] = me
+
     #Auktualizacja departamentów do bazy jeśli to konieczne
     if dep.check_if_update_departments():
         dep.update_departments(dep.get_departments())
 
     #pobranie dostępnych departamentów dla menu wyboru
     departments = dep.get_departments_from_db()
+
+    #Policzenie ilosci pozycji w departamencie
+    if me == 'only-me':
+        departments = dep.get_all_user_counts_in_departments(departments, user_id)
+    else:
+        departments = dep.get_all_counts_in_departments(departments)
     parameters['departments'] = departments
 
     #Pobranie id departamentu z db na postawie jego nazwy uri
@@ -67,13 +79,10 @@ def index(dep_uri=default_dep_uri, page=default_page, me=default_me):
     department_name = dep.get_department_name_from_id(department_id)
     parameters['department_name'] = department_name
 
-    #pobranie parametru /me
-    me = dep.get_correct_me(user_id, me)
-    parameters['me'] = me
+    print(departments)
 
     #utworzenie instancji klasy Arts zawierającej metody obsługujące indeksy produktów
     arts = Arts(db.get_db(), Museum_api())
-
 
     # Aktualizacja wszystkich id produktów w wybranym departamencie
     if arts.check_if_update_arts_is_needed(department_id):
@@ -85,31 +94,20 @@ def index(dep_uri=default_dep_uri, page=default_page, me=default_me):
     else:
         arts_id = arts.get_arts_for_selected_page(page, department_id, max_for_page)
 
-
-    print(arts_id)
-
     #utworzenie instancji klasy Arts zawierającej metody obsługujące indeksy produktów
     cont = Cont(db.get_db(), Museum_api())
     parameters['cont'] = cont
 
     #Aktualizacja contentu do bazy (o ile potrzeba) dla produktów dla wybranej strony i departamentu
     for art_id in arts_id:
-
-        print(art_id)
-        print(department_id)
-
         if cont.check_if_update_art_content_is_needed(art_id, department_id):
             cont.update_content(art_id, department_id)
 
     #Przygotowanie contentu do wyświetlenia
     contents = cont.get_contents(arts_id)
-    print('contents', contents)
-
-    print('user_id', user_id)
 
     #jeżeli parametr /me ma ustawione only-me to wybrać z content tylko te produkty które user dodał do favorites
     contents = cont.get_only_user_content(contents, user_id, me)
-    print('contents', contents)
 
     #utworzenie słownika nazw parametrów
     names = {name: cont.get_human_name(name) for name in cont.get_cols_to_need_names()}
@@ -126,15 +124,9 @@ def index(dep_uri=default_dep_uri, page=default_page, me=default_me):
     else:
         all_pages = pages.get_pages_count(department_id, max_for_page)
 
-
-    print('all_pages', all_pages)
-
     #Przygotowanie danych do paginacji
     pagination = pages.get_pagination(dep_uri, page, all_pages, max_pages_in_pagination, me)
     parameters['pagination'] = pagination
-
-
-
 
     return render_template('index.html', **parameters)
 
@@ -216,15 +208,6 @@ def save():
             art_id = request.form.get('art_id', '')
             action = request.form.get('action', '')
             me = request.form.get('me', '')
-
-            print('dep_uri', dep_uri)
-            print('page', page)
-            print('hash', hash)
-            print('art_id', art_id)
-            print('action', action)
-            print('me', me)
-
-
             if (action == 'add'):
                 fav.add_to_favorites(user_id, art_id, hash)
             elif (action == 'remove'):

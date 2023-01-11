@@ -86,7 +86,7 @@ class Arts():
         try:
             cursor = self.conn.cursor()
             sql = "SELECT art_id FROM arts WHERE department_id = ? ORDER BY art_id ASC LIMIT ?, ?"
-            sql_data = (department_id, page * max_for_page, max_for_page)
+            sql_data = (department_id, (page - 1) * max_for_page, max_for_page)
             cursor.execute(sql, sql_data)
             rows = cursor.fetchall()
             for row in rows:
@@ -103,7 +103,7 @@ class Arts():
                 cursor = self.conn.cursor()
                 sql = "SELECT ua.art_id FROM user_arts AS ua INNER JOIN arts AS a ON ua.art_id = a.art_id " \
                       "WHERE a.department_id = ? ORDER BY ua.art_id LIMIT ?, ?"
-                sql_data = (department_id, page * max_for_page, max_for_page)
+                sql_data = (department_id, (page - 1) * max_for_page, max_for_page)
                 cursor.execute(sql, sql_data)
                 rows = cursor.fetchall()
                 for row in rows:
