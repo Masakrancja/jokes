@@ -3,6 +3,9 @@
 		<form name="my_form" action="{{ url_for('save') }}" method="POST">
 			<input type="hidden" name="hash" value="{{ content.hash }}">
 			<input type="hidden" name="art_id" value="{{ content.art_id }}">
+			<input type="hidden" name="dep_uri" value="{{ dep_uri }}">
+			<input type="hidden" name="page" value="{{ page }}">
+			<input type="hidden" name="me" value="{{ me }}">
 			{% if content.is_favorites %}
 				<input type="hidden" name="action" value="remove">
 				<button type="submit" class="btn btn-danger">

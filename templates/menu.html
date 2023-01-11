@@ -1,15 +1,17 @@
       <nav class="navbar navbar-expand-lg bg-light">
         <div class="container-fluid">
-          <a class="navbar-brand"><img src="{{ url_for('static', filename='museum_black_24dp.svg') }}" alt="Bootstrap" width="32" height="32"></a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <a class="navbar-brand"><img src="{{ url_for('static', filename='museum_black_24dp.svg') }}"
+                                       alt="Bootstrap" width="32" height="32"></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+                  aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
               {% include 'menu_departments.html' %}
-              <a class="nav-link active" href="{{ url_for('index') }}">Gallery</a>
+              <a class="nav-link active" href="{{ url_for('index', dep_uri='the-robert-lehman-collection', page=0, me='all') }}">Gallery</a>
                 {% if user_id %}
-                    <a class="nav-link" href="{{ url_for('index') }}">My favorites</a>
+                    <a class="nav-link" href="{{ url_for('index', dep_uri='the-robert-lehman-collection', page=0, me='only-me') }}">My favorites</a>
                     <a class="nav-link">You are logged as: {{ auth.get_user_name(user_id) }}</a>
                     <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                 {% else %}

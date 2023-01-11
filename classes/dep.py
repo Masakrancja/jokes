@@ -93,3 +93,11 @@ class Departments():
     def create_uri_name(self, name):
         name = re.sub(r'[^A-Za-z0-9]', '-', name).lower()
         return re.sub(r'-+', '-', name)
+
+    def get_correct_me(self, user_id, me):
+        avail = ['all', 'only-me']
+        if me not in avail:
+            return 'all'
+        if not user_id and me == 'only-me':
+            return 'all'
+        return me

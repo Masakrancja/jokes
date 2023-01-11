@@ -209,3 +209,26 @@ class Cont():
         return False
 
 
+    def get_only_user_content(self, contents, user_id, me):
+        result = []
+        if me == 'only-me':
+            if user_id:
+                for content in contents:
+                    if self.has_user_this_art_id(content['art_id'], user_id):
+                        result.append(content)
+            return result
+        return contents
+
+
+    def has_user_this_art_id(self, art_id, user_id):
+        try:
+            cursor = self.conn.cursor()
+            sql = "SELECT id FROM user_arts WHERE user_id = ? and art_id = ?"
+            sql_data = (user_id, art_id)
+            cursor.execute(sql, sql_data)
+            row = cursor.fetchone()
+            if row:
+                return True
+            return False
+        except sqlite3.Error as err:
+            abort(500, description=f"Error database - has_user_this_art_id {err}")

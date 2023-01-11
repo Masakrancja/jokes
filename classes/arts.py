@@ -94,3 +94,20 @@ class Arts():
             return result
         except sqlite3.Error as err:
             abort(500, description=f"Error database - get_objects_for_selected {err}")
+
+
+    def get_user_arts_for_selected_page(self, user_id, page, department_id, max_for_page):
+        result = []
+        if user_id:
+            try:
+                cursor = self.conn.cursor()
+                sql = "SELECT ua.art_id FROM user_arts AS ua INNER JOIN arts AS a ON ua.art_id = a.art_id " \
+                      "WHERE a.department_id = ? ORDER BY ua.art_id LIMIT ?, ?"
+                sql_data = (department_id, page * max_for_page, max_for_page)
+                cursor.execute(sql, sql_data)
+                rows = cursor.fetchall()
+                for row in rows:
+                    result.append(row['art_id'])
+            except sqlite3.Error as err:
+                abort(500, description=f"Error database - get_user_arts_for_selected_page {err}")
+        return result
