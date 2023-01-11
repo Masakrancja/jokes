@@ -34,43 +34,43 @@ def index(dep_uri=default_dep_uri, page=default_page, me=default_me):
     parameters['page'] = page
     parameters['me'] = me
 
-    # utworzenie instancji klasy DB
+    #Create instance class DB
     db = DB(db_file)
 
-    #Sprawdzenie czy są utworzone wszystkie tabele
+    #Check if all tables in database have been created
     db.check_tables()
 
-    # utworzenie instancji klasy Auth zawierającej metody związane z logowaniem i autoryzacją
+    #Create instance class Auth included methods associated with logging and authorise
     auth = Auth(db.get_db())
     parameters['auth'] = auth
 
-    #Pobranie id zalogowanego uzytkownika jeśli jest
+    #Get id logged user if exist
     user_id = auth.get_user_id()
     parameters['user_id'] = user_id
 
-    #utworzenie instancji klasy Departments która zawiera metody działające na departamentach
+    #Create instance class of Departments included methods associated with departments of museum
     dep = Departments(db.get_db(), Museum_api())
     parameters['dep'] = dep
 
-    #pobranie parametru /me
+    #Get param /me
     me = dep.get_correct_me(user_id, me)
     parameters['me'] = me
 
-    #Auktualizacja departamentów do bazy jeśli to konieczne
+    #Update departments to database if necessary
     if dep.check_if_update_departments():
         dep.update_departments(dep.get_departments())
 
-    #pobranie dostępnych departamentów dla menu wyboru
+    #Get available depatments for menu of chosen
     departments = dep.get_departments_from_db()
 
-    #Policzenie ilosci pozycji w departamencie
+    #Counting positions in all departments or only logged user
     if me == 'only-me':
         departments = dep.get_all_user_counts_in_departments(departments, user_id)
     else:
         departments = dep.get_all_counts_in_departments(departments)
     parameters['departments'] = departments
 
-    #Pobranie id departamentu z db na postawie jego nazwy uri
+    #Get id of departments from database based on its uri name
     department_id = dep.get_department_id_from_uri(dep_uri)
     if not department_id:
         department_id = default_dep_id
@@ -78,8 +78,6 @@ def index(dep_uri=default_dep_uri, page=default_page, me=default_me):
 
     department_name = dep.get_department_name_from_id(department_id)
     parameters['department_name'] = department_name
-
-    print(departments)
 
     #utworzenie instancji klasy Arts zawierającej metody obsługujące indeksy produktów
     arts = Arts(db.get_db(), Museum_api())
