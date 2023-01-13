@@ -294,4 +294,4 @@ def process_set_note():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

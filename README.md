@@ -14,12 +14,17 @@ https://metmuseum.github.io/
 Python 3.11 (Tested only with Python 3.11)
 
 ## Install:
-1. Get repo from github: https://github.com/Masakrancja/jokes.git
+1. Get repo from github: https://github.com/Masakrancja/museum_of_art_ny.git
 2. Create virtual serwer 'venv'
+   `python -m venv venv`
+   `.\venv\Scripts\activate`
 3. Install requriements from file requriements.txt 
-   `pip install -r requriements.txt`
+   `pip install -r requirements.txt`
 4. First run `db_init.py` script from main catalog
 5. Run application `app.py`
+
+## Known bugs
+- in route /login : list of departments is empty
 
 ## Author
 - Piotr Pietrzak
