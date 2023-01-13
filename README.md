@@ -21,6 +21,9 @@ Python 3.11 (Tested only with Python 3.11)
 4. First run `db_init.py` script from main catalog
 5. Run application `app.py`
 
+## Author
+- Piotr Pietrzak
+- piotrpietrzak145@gmail.com
 
 
 

@@ -38,10 +38,10 @@ class Arts():
         :return: collection
         """
         objects = self.museum_api.get_objects(department_id)
-        if objects.status_code == 200:
+        if (objects.status_code == 200):
             return json.loads(objects.text)
         else:
-            abort(objects.status_code)
+            abort(objects.status_code, objects.reason)
 
 
     def update_arts(self, arts_id, department_id):
@@ -97,6 +97,14 @@ class Arts():
 
 
     def get_user_arts_for_selected_page(self, user_id, page, department_id, max_for_page):
+        """
+        Get numbers id of arts from database for chosen page and limit arts for page only for logged user
+        :param user_id: integer
+        :param page: integer
+        :param department_id: integer
+        :param max_for_page: integer
+        :return: list
+        """
         result = []
         if user_id:
             try:

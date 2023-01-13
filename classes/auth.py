@@ -2,7 +2,7 @@ import hashlib
 import re
 import datetime
 import sqlite3
-from flask import abort, session
+from flask import abort, session, flash
 
 class Auth():
     def __init__(self, conn):
@@ -23,6 +23,11 @@ class Auth():
         return ''
 
     def add_user_to_session(self, user_id):
+        """
+        Add user id to session
+        :param user_id: string
+        :return: None
+        """
         session['user_id'] = user_id
         return None
 
@@ -71,6 +76,7 @@ class Auth():
         :return: None
         """
         if 'user_id' in session:
+            flash(f"See you again {self.get_user_name(session['user_id'])}")
             session.pop('user_id')
         return None
 
@@ -165,6 +171,8 @@ class Auth():
             cursor.execute(sql, sql_data)
             self.conn.commit()
             self.add_user_to_session(hashed_user_id)
+            flash(f"Hello {name}. You account was succefully created")
+            flash(f"Hello {self.get_user_name(hashed_user_id)}. You are succefully logged")
         except sqlite3.Error as err:
             abort(500, description=f"Error database - insert_user {err}")
 
@@ -188,6 +196,7 @@ class Auth():
                 return 'Login and / or password are incorrect. Please try again'
             else:
                 self.add_user_to_session(row['user_id'])
+                flash(f"Hello {self.get_user_name(row['user_id'])}. You are succefully logged")
             return ''
         except sqlite3.Error as err:
             abort(500, description=f"Error database - check_credentials {err}")

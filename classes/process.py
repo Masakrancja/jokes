@@ -6,6 +6,12 @@ class Process:
 
 
     def get_value(self, hash, col):
+        """
+        Get value from database
+        :param hash: string
+        :param col: string
+        :return: Mixed
+        """
         result = ''
         try:
             cursor = self.conn.cursor()
@@ -27,6 +33,13 @@ class Process:
 
 
     def set_value(self, value, hash, col):
+        """
+        Set value to database
+        :param value: mixed
+        :param hash: string
+        :param col: string
+        :return: mixed
+        """
         result = value
         now = datetime.datetime.now()
         format_string = "%Y-%m-%d %H:%M:%S"

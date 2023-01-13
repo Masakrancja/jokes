@@ -7,7 +7,13 @@ class Departments():
         self.conn = conn
         self.museum_api = museum_api
 
-    def check_if_update_departments(self, seconds=3600):
+
+    def check_if_update_departments(self, seconds=86400):
+        """
+        Check if is needed update content of depatmrnts
+        :param seconds: Integer
+        :return: Boolean
+        """
         earlier = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
         cursor = self.conn.cursor()
         try:
@@ -21,14 +27,25 @@ class Departments():
         except sqlite3.Error as err:
             abort(500, description="Error database - check_if_update_departments")
 
+
     def get_departments(self):
+        """
+        Get struct of depatmrnts from museum api and check result
+        :return: collection
+        """
         departments = self.museum_api.get_departments()
         if departments.status_code == 200:
             return json.loads(departments.text)
         else:
             abort(departments.status_code)
 
+
     def update_departments(self, departments):
+        """
+        Update info about departments to database
+        :param departments:list of dicts
+        :return: None
+        """
         now = datetime.datetime.now()
         format_string = "%Y-%m-%d %H:%M:%S"
         now_string = now.strftime(format_string)
@@ -52,7 +69,12 @@ class Departments():
         except sqlite3.Error as err:
             abort(500, description="Error database - update_departments")
 
+
     def get_departments_from_db(self):
+        """
+        Get departments from database
+        :return: list of dicts
+        """
         result = []
         try:
             cursor = self.conn.cursor()
@@ -65,7 +87,13 @@ class Departments():
         except sqlite3.Error as err:
             abort(500, description="Error database - get_departments_from_db")
 
+
     def get_department_id_from_uri(self, name_uri):
+        """
+        Get department id by uri name
+        :param name_uri: string
+        :return: Integer
+        """
         try:
             cursor = self.conn.cursor()
             sql = "SELECT department_id FROM departments WHERE name_uri = ?"
@@ -80,6 +108,11 @@ class Departments():
 
 
     def get_department_name_from_id(self, department_id):
+        """
+        Get departmrnt name by department id
+        :param department_id: Integer
+        :return: String
+        """
         try:
             cursor = self.conn.cursor()
             sql = "SELECT name FROM departments WHERE department_id = ?"
@@ -92,11 +125,24 @@ class Departments():
         except sqlite3.Error as err:
             abort(500, description=f"Error database - get_department_name_from_id {err}")
 
+
     def create_uri_name(self, name):
+        """
+        Create friendly name to browser
+        :param name: string
+        :return: string
+        """
         name = re.sub(r'[^A-Za-z0-9]', '-', name).lower()
         return re.sub(r'-+', '-', name)
 
+
     def get_correct_me(self, user_id, me):
+        """
+        Get and correct param 'me' if needed
+        :param user_id: string
+        :param me: string
+        :return: string
+        """
         avail = ['all', 'only-me']
         if me not in avail:
             return 'all'
@@ -106,6 +152,11 @@ class Departments():
 
 
     def get_all_counts_in_departments(self, departments):
+        """
+        Get counted all arts by particulary department
+        :param departments: List of dicts
+        :return: list
+        """
         for i, department in enumerate(departments):
             try:
                 cursor = self.conn.cursor()
@@ -120,6 +171,12 @@ class Departments():
 
 
     def get_all_user_counts_in_departments(self, departments, user_id):
+        """
+        Get countig all arts but only added to favorites by lggged user in all departments
+        :param departments: list of dicts
+        :param user_id: string
+        :return: list
+        """
         for i, department in enumerate(departments):
             try:
                 cursor = self.conn.cursor()

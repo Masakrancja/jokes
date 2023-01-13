@@ -6,6 +6,12 @@ class Pages:
 
 
     def get_pages_count(self, department_id, max_for_page):
+        """
+        Get count of pages of arts for given depatment and max arts for page
+        :param department_id: integer
+        :param max_for_page: integer
+        :return: integer
+        """
         try:
             cursor = self.conn.cursor()
             sql = "SELECT COUNT(id) AS c FROM arts WHERE department_id = ?"
@@ -23,6 +29,12 @@ class Pages:
 
 
     def get_user_pages_count(self, user_id, department_id, max_for_page):
+        """
+        Get count of pages of arts only added by logged user to favorites for given department and max arts for page
+        :param department_id: integer
+        :param max_for_page: integer
+        :return: integer
+        """
         try:
             cursor = self.conn.cursor()
             sql = "SELECT COUNT(user_arts.id) as c FROM user_arts LEFT JOIN arts ON user_arts.art_id = arts.art_id " \
@@ -41,6 +53,15 @@ class Pages:
 
 
     def get_pagination(self, dep_uri, page, pages, max_pages, me):
+        """
+        get structure nedded to paginatoin view
+        :param dep_uri: string
+        :param page: integer
+        :param pages: integer
+        :param max_pages: integer
+        :param me: string
+        :return: dict
+        """
         pagination = {}
         if pages <= 1:
             return pagination

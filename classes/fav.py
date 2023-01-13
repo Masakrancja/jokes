@@ -6,7 +6,15 @@ class Fav():
     def __init__(self, conn):
         self.conn = conn
 
+
     def add_to_favorites(self, user_id, art_id, hash):
+        """
+        Add art to favorites by logged user
+        :param user_id: string
+        :param art_id: integer
+        :param hash: string
+        :return: None
+        """
         if not self.get_id_by_hash(hash):
             now = datetime.datetime.now()
             format_string = "%Y-%m-%d %H:%M:%S"
@@ -26,6 +34,11 @@ class Fav():
 
 
     def remove_from_favorites(self, hash):
+        """
+        Remove art from favorites by logged user
+        :param hash: string
+        :return: None
+        """
         id = self.get_id_by_hash(hash)
         if id:
             try:
@@ -42,6 +55,11 @@ class Fav():
 
 
     def get_id_by_hash(self, hash):
+        """
+        Get id of art added to favorites by user
+        :param hash: string
+        :return: integer if id exist othervise False
+        """
         try:
             cursor = self.conn.cursor()
             sql = "SELECT id FROM user_arts WHERE hash = ?"
@@ -53,6 +71,3 @@ class Fav():
             return False
         except sqlite3.Error as err:
             abort(500, description=f"Error database - isset_in_favorites {err}")
-
-
-
