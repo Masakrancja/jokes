@@ -101,7 +101,7 @@ def index(dep_uri=default_dep_uri, page=default_page, me=default_me):
         if cont.check_if_update_art_content_is_needed(art_id, department_id):
             cont.update_content(art_id, department_id)
 
-    #Przygotowanie contentu do wyświetlenia
+    #Prepare content to view
     contents = cont.get_contents(arts_id)
 
     #If param /me is set 'only-me' then select from contents only arts which user added to favorites
